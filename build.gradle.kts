@@ -33,6 +33,7 @@ allprojects {
     val testcontainersBom: String by project
     val protobufBom: String by project
     val guava: String by project
+    val jmh: String by project
 
     apply(plugin = "io.spring.dependency-management")
     dependencyManagement {
@@ -43,6 +44,8 @@ allprojects {
                 mavenBom("com.google.protobuf:protobuf-bom:$protobufBom")
             }
             dependency("com.google.guava:guava:$guava")
+            dependency("org.openjdk.jmh:jmh-core:$jmh")
+            dependency("org.openjdk.jmh:jmh-generator-annprocess:$jmh")
         }
     }
 
@@ -91,8 +94,8 @@ subprojects {
         nonQualifierBranches("main,master")
         tagVersionPattern("\${v}\${<meta.DIRTY_TEXT}")
         versionPattern(
-            "\${v}\${<meta.COMMIT_DISTANCE}\${<meta.GIT_SHA1_8}" +
-                    "\${<meta.QUALIFIED_BRANCH_NAME}\${<meta.DIRTY_TEXT}-SNAPSHOT"
+                "\${v}\${<meta.COMMIT_DISTANCE}\${<meta.GIT_SHA1_8}" +
+                        "\${<meta.QUALIFIED_BRANCH_NAME}\${<meta.DIRTY_TEXT}-SNAPSHOT"
         )
     }
 
@@ -109,10 +112,10 @@ tasks {
     val managedVersions by registering {
         doLast {
             project.extensions.getByType<DependencyManagementExtension>()
-                .managedVersions
-                .toSortedMap()
-                .map { "${it.key}:${it.value}" }
-                .forEach(::println)
+                    .managedVersions
+                    .toSortedMap()
+                    .map { "${it.key}:${it.value}" }
+                    .forEach(::println)
         }
     }
 }
