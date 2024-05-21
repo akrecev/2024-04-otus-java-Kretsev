@@ -118,7 +118,6 @@ class CustomerTest {
     }
 
     @Test
-    @Disabled("надо удалить") // надо удалить
     @DisplayName("Возвращание в обратном порядке")
     void reverseOrderTest() {
         // given
