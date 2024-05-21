@@ -45,12 +45,8 @@ public class Customer {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-
         Customer customer = (Customer) o;
-
-        if (id != customer.id) return false;
-        if (scores != customer.scores) return false;
-        return Objects.equals(name, customer.name);
+        return id == customer.id;
     }
 
     @Override
