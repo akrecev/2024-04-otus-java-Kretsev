@@ -49,9 +49,6 @@ public class Customer {
 
     @Override
     public int hashCode() {
-        int result = Long.hashCode(id);
-        result = 31 * result + (name != null ? name.hashCode() : 0);
-        result = 31 * result + Long.hashCode(scores);
-        return result;
+        return Long.hashCode(id);
     }
 }
