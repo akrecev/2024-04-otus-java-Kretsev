@@ -3,21 +3,17 @@ package ru.otus.l12.solid;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
- * @author sergey created on 09.09.19.
+ * @author sergey
+ * created on 09.09.19.
  */
-@SuppressWarnings({"java:S1144", "java:S2094"})
 public class OpenClosed {
-    private static final Logger logger = LoggerFactory.getLogger(OpenClosed.class);
 
     // Плохой пример
-    // Эту функцию без модификации не получится использовать, например, с TreeSet и другим
-    // алгоритмом
+    // Эту функцию без модификации не получится использовать, например, с TreeSet и другим алгоритмом
     private void messageProcessing(ArrayList<Message> messageList) {
-        messageList.forEach(msg -> logger.info(msg.toString()));
+        messageList.forEach(msg -> System.out.println(msg.toString()));
     }
 
     // Хороший пример
@@ -30,7 +26,7 @@ public class OpenClosed {
     void good() {
 
         // использование 1 (вызов, например, из другого класса)
-        messageProcessing(new HashSet<>(), msg -> logger.info(msg.toString()));
+        messageProcessing(new HashSet<>(), msg -> System.out.println(msg.toString()));
 
         // использование 2 (вызов, например, из другого класса)
         messageProcessing(new ArrayList<>(), new Processor2());
@@ -40,7 +36,7 @@ public class OpenClosed {
 
         @Override
         public void action(Message msg) {
-            logger.info("{} R", msg);
+            System.out.println(msg.toString() + "R");
         }
     }
 
@@ -49,5 +45,5 @@ public class OpenClosed {
         void action(T msg);
     }
 
-    private static class Message {}
+    private class Message {}
 }

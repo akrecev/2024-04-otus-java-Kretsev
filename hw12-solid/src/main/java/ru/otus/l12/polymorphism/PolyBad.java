@@ -4,7 +4,8 @@ import ru.otus.l12.polymorphism.operations.Create;
 import ru.otus.l12.polymorphism.operations.Update;
 
 /**
- * @author sergey created on 09.09.19.
+ * @author sergey
+ * created on 09.09.19.
  */
 public class PolyBad {
     public static void main(String[] args) {

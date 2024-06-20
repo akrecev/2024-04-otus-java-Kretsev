@@ -1,9 +1,9 @@
 package ru.otus.l12.solid;
 
 /**
- * @author sergey created on 09.09.19.
+ * @author sergey
+ * created on 09.09.19.
  */
-@SuppressWarnings({"java:S1186", "java:S2094"})
 public class SingleResponsibility {
 
     /*

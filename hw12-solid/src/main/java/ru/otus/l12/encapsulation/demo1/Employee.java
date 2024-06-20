@@ -1,6 +1,5 @@
 package ru.otus.l12.encapsulation.demo1;
 
-@SuppressWarnings({"java:S125"})
 public class Employee {
     Department department = new Department();
 

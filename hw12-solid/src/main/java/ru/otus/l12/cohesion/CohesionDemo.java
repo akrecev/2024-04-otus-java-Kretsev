@@ -1,17 +1,13 @@
 package ru.otus.l12.cohesion;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 /**
- * @author spv created on 11.02.20.
+ * @author spv
+ * created on 11.02.20.
  */
 
 // Где Cohesion больше: A или B (класс B ниже)?
 
-@SuppressWarnings({"java:S125", "java:S1118"})
 class A {
-    private static final Logger logger = LoggerFactory.getLogger(A.class);
     private String message;
     // Инициализация message опущена
 
@@ -22,11 +18,10 @@ class A {
 
     private void send() {
         // ... Здесь может быть какая-то логика...
-        logger.info("Send: {}", this.message);
+        System.out.println("Send: " + this.message);
     }
 }
 
-@SuppressWarnings({"java:S125", "java:S1118"})
 class B {
     private String message;
     // Инициализация message опущена
@@ -48,12 +43,9 @@ class B {
 
 // См. еще код ниже
 
-@SuppressWarnings({"java:S125", "java:S1118"})
 class Helper {
-    private static final Logger logger = LoggerFactory.getLogger(Helper.class);
-
     public static void send(String message) {
         // ... Здесь может быть какая-то логика...
-        logger.info("Send: {}", message);
+        System.out.println("Send: " + message);
     }
 }
