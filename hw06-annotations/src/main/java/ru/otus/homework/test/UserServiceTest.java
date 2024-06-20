@@ -1,5 +1,7 @@
 package ru.otus.homework.test;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import lombok.extern.slf4j.Slf4j;
 import org.assertj.core.api.Assertions;
 import ru.otus.homework.annotations.After;
@@ -7,8 +9,6 @@ import ru.otus.homework.annotations.Before;
 import ru.otus.homework.annotations.Test;
 import ru.otus.homework.model.User;
 import ru.otus.homework.service.UserService;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 @Slf4j
 public class UserServiceTest {

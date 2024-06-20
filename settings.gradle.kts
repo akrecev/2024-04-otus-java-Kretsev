@@ -13,6 +13,7 @@ include("hw08-gc:homework")
 include("hw09-docker")
 include("hw10-byteCodes")
 include("hw11-Java8")
+include("hw12-solid")
 
 pluginManagement {
     val jgitver: String by settings
