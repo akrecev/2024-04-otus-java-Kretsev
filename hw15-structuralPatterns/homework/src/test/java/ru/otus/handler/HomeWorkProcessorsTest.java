@@ -11,6 +11,7 @@ import ru.otus.processor.homework.exception.EvenSecondException;
 import ru.otus.processor.homework.processor.ProcessorReplaceFields;
 import ru.otus.processor.homework.processor.TimeProcessor;
 
+@SuppressWarnings({"java:S5778", "java:S5786"})
 public class HomeWorkProcessorsTest {
 
     @Test
