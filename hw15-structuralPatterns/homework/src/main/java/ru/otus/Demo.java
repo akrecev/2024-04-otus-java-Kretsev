@@ -1,8 +1,6 @@
 package ru.otus;
 
 import java.util.List;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import ru.otus.handler.ComplexProcessor;
 import ru.otus.listener.ListenerPrinterConsole;
 import ru.otus.model.Message;
@@ -11,8 +9,6 @@ import ru.otus.processor.ProcessorConcatFields;
 import ru.otus.processor.ProcessorUpperField10;
 
 public class Demo {
-    private static final Logger logger = LoggerFactory.getLogger(Demo.class);
-
     public static void main(String[] args) {
         var processors = List.of(new ProcessorConcatFields(), new LoggerProcessor(new ProcessorUpperField10()));
 
@@ -29,7 +25,7 @@ public class Demo {
                 .build();
 
         var result = complexProcessor.handle(message);
-        logger.info("result:{}", result);
+        System.out.println("result:" + result);
 
         complexProcessor.removeListener(listenerPrinter);
     }
