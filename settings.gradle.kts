@@ -16,6 +16,8 @@ include("hw11-Java8")
 include("hw12-solid")
 include("hw13-creationalPatterns")
 include("hw14-behavioralPatterns")
+include("hw15-structuralPatterns:demo")
+include("hw15-structuralPatterns:homework")
 
 pluginManagement {
     val jgitver: String by settings
