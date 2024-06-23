@@ -16,7 +16,9 @@ class LoggingInvocationHandler implements InvocationHandler {
 
     LoggingInvocationHandler(Object loggingClass) {
         this.loggingClass = (TestLoggingInterface) loggingClass;
-        for (Method method : loggingClass.getClass().getDeclaredMethods()) {
+        Method[] declaredMethods = loggingClass.getClass().getDeclaredMethods();
+        logger.info("Reflection call");
+        for (Method method : declaredMethods) {
             if (method.isAnnotationPresent(Log.class)) {
                 try {
                     loggingMethods.add(getInterfaceMethod(method));
@@ -36,6 +38,10 @@ class LoggingInvocationHandler implements InvocationHandler {
     }
 
     private static Method getInterfaceMethod(Method method) throws NoSuchMethodException {
-        return TestLoggingInterface.class.getDeclaredMethod(method.getName(), method.getParameterTypes());
+        Method interfaceMethod =
+                TestLoggingInterface.class.getDeclaredMethod(method.getName(), method.getParameterTypes());
+        logger.info("Reflection call");
+
+        return interfaceMethod;
     }
 }
