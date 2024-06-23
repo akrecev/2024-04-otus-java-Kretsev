@@ -14,8 +14,8 @@ class LoggingInvocationHandler implements InvocationHandler {
     private final TestLoggingInterface loggingClass;
     private final Set<Method> loggingMethods = new HashSet<>();
 
-    LoggingInvocationHandler(TestLoggingInterface loggingClass) {
-        this.loggingClass = loggingClass;
+    LoggingInvocationHandler(Object loggingClass) {
+        this.loggingClass = (TestLoggingInterface) loggingClass;
         for (Method method : loggingClass.getClass().getDeclaredMethods()) {
             if (method.isAnnotationPresent(Log.class)) {
                 try {
