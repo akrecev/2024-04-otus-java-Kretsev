@@ -11,13 +11,13 @@ import ru.otus.homework.testlogging.TestLoggingInterface;
 
 class LoggingInvocationHandler implements InvocationHandler {
     public static final Logger logger = LoggerFactory.getLogger(LoggingInvocationHandler.class);
-    private final TestLoggingInterface loggingClass;
+    private final Object loggingClass;
     private final Set<Method> loggingMethods = new HashSet<>();
 
     LoggingInvocationHandler(Object loggingClass) {
-        this.loggingClass = (TestLoggingInterface) loggingClass;
+        this.loggingClass = loggingClass;
         Method[] declaredMethods = loggingClass.getClass().getDeclaredMethods();
-        logger.info("Reflection call");
+        logger.info("Reflection call - get class methods");
         for (Method method : declaredMethods) {
             if (method.isAnnotationPresent(Log.class)) {
                 try {
@@ -40,7 +40,7 @@ class LoggingInvocationHandler implements InvocationHandler {
     private static Method getInterfaceMethod(Method method) throws NoSuchMethodException {
         Method interfaceMethod =
                 TestLoggingInterface.class.getDeclaredMethod(method.getName(), method.getParameterTypes());
-        logger.info("Reflection call");
+        logger.info("Reflection call - get method with annotation");
 
         return interfaceMethod;
     }
