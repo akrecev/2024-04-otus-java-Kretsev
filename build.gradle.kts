@@ -37,6 +37,12 @@ allprojects {
     val asm: String by project
     val glassfishJson: String by project
 
+    val mongodb: String by project
+    val mongodbReactive: String by project
+    val cassandra: String by project
+    val neo4j: String by project
+    val jedis: String by project
+
     apply(plugin = "io.spring.dependency-management")
     dependencyManagement {
         dependencies {
@@ -50,6 +56,14 @@ allprojects {
             dependency("org.openjdk.jmh:jmh-generator-annprocess:$jmh")
             dependency("org.glassfish:jakarta.json:$glassfishJson")
             dependency("org.ow2.asm:asm-commons:$asm")
+
+            dependency("com.datastax.oss:java-driver-core:$cassandra")
+            dependency("org.mongodb:mongodb-driver-core:$mongodb")
+            dependency("org.mongodb:mongodb-driver-sync:$mongodb")
+            dependency("org.mongodb:bson:$mongodb")
+            dependency("org.mongodb:mongodb-driver-reactivestreams:${mongodbReactive}")
+            dependency("org.neo4j.driver:neo4j-java-driver:$neo4j")
+            dependency("redis.clients:jedis:$jedis")
         }
     }
 
@@ -68,6 +82,8 @@ allprojects {
             force("org.sonarsource.analyzer-commons:sonar-analyzer-recognizers:2.8.0.2699")
             force("com.google.code.findbugs:jsr305:3.0.2")
             force("commons-io:commons-io:2.15.1")
+            force("com.google.errorprone:error_prone_annotations:2.26.1")
+            force("com.google.j2objc:j2objc-annotations:3.0.0")
         }
     }
 }
@@ -84,6 +100,7 @@ subprojects {
         options.compilerArgs.addAll(listOf("-Xlint:all,-serial,-processing"))
     }
 
+    apply<name.remal.gradle_plugins.sonarlint.SonarLintPlugin>()
     apply<com.diffplug.gradle.spotless.SpotlessPlugin>()
     configure<com.diffplug.gradle.spotless.SpotlessExtension> {
         java {
@@ -97,8 +114,8 @@ subprojects {
         nonQualifierBranches("main,master")
         tagVersionPattern("\${v}\${<meta.DIRTY_TEXT}")
         versionPattern(
-            "\${v}\${<meta.COMMIT_DISTANCE}\${<meta.GIT_SHA1_8}" +
-                    "\${<meta.QUALIFIED_BRANCH_NAME}\${<meta.DIRTY_TEXT}-SNAPSHOT"
+                "\${v}\${<meta.COMMIT_DISTANCE}\${<meta.GIT_SHA1_8}" +
+                        "\${<meta.QUALIFIED_BRANCH_NAME}\${<meta.DIRTY_TEXT}-SNAPSHOT"
         )
     }
 
@@ -115,10 +132,10 @@ tasks {
     val managedVersions by registering {
         doLast {
             project.extensions.getByType<DependencyManagementExtension>()
-                .managedVersions
-                .toSortedMap()
-                .map { "${it.key}:${it.value}" }
-                .forEach(::println)
+                    .managedVersions
+                    .toSortedMap()
+                    .map { "${it.key}:${it.value}" }
+                    .forEach(::println)
         }
     }
 }
