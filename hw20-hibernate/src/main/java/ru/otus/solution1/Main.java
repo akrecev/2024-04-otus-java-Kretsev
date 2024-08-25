@@ -12,6 +12,7 @@ public class Main {
         try (var sessionFactory =
                 HibernateUtils.buildSessionFactory(OtusStudent.class, Avatar.class, EMail.class, Course.class)) {
             logger.info("Statistics:{}", sessionFactory.getStatistics());
+            logger.info("Hibernate version: " + org.hibernate.Version.getVersionString());
         }
     }
 }
