@@ -12,11 +12,7 @@ import org.hibernate.SessionFactory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import ru.otus.jpql.model.Avatar;
-import ru.otus.jpql.model.Category;
-import ru.otus.jpql.model.Course;
-import ru.otus.jpql.model.EMail;
-import ru.otus.jpql.model.OtusStudent;
+import ru.otus.jpql.model.*;
 
 class JpqlTest {
 
@@ -59,7 +55,12 @@ class JpqlTest {
     void shouldFindExpectedStudentByName() {
         doInSessionWithTransaction(sf, session -> {
             var query = session.createQuery(
-                    "select s " + "from OtusStudent s " + "where s.name = :name", OtusStudent.class);
+                    """
+                            select s
+                            from OtusStudent s
+                            where s.name = :name
+                            """,
+                    OtusStudent.class);
 
             query.setParameter("name", FIRST_STUDENT_NAME);
 
@@ -80,8 +81,12 @@ class JpqlTest {
             var newName = firstStudent.getName() + firstStudent.getName();
             session.detach(firstStudent);
 
-            var query =
-                    session.createMutationQuery("update OtusStudent s " + "set s.name = :name " + "where s.id = :id");
+            var query = session.createMutationQuery(
+                    """
+                    update OtusStudent s
+                    set s.name = :name
+                    where s.id = :id
+                    """);
             query.setParameter("id", FIRST_STUDENT_ID);
             query.setParameter("name", newName);
             query.executeUpdate();
@@ -100,7 +105,11 @@ class JpqlTest {
             assertThat(firstEMail).isNotNull();
             session.detach(firstEMail);
 
-            var query = session.createMutationQuery("delete " + "from EMail e " + "where e.id = :id");
+            var query = session.createMutationQuery(
+                    """
+                            delete from EMail e
+                            where e.id = :id
+                            """);
             query.setParameter("id", FIRST_EMAIL_ID);
             query.executeUpdate();
 
