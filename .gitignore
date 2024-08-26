@@ -37,3 +37,7 @@ out
 *.ipr
 *.idea
 
+# Eclipse
+.classpath
+.project
+.settings/
