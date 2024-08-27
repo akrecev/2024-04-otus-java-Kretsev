@@ -20,6 +20,14 @@ public final class HibernateUtils {
         return metadata.getSessionFactoryBuilder().build();
     }
 
+    // временный метод для вывода логов создания таблиц Hibernate
+    public static SessionFactory buildSessionFactory(Class<?>... annotatedClasses) {
+        Configuration configuration = new Configuration().configure("hibernate.cfg.xml");
+        configuration.setProperty("hibernate.hbm2ddl.auto", "create"); // !!! Только для упрощения учебного примера
+
+        return buildSessionFactory(configuration, annotatedClasses);
+    }
+
     private static StandardServiceRegistry createServiceRegistry(Configuration configuration) {
         return new StandardServiceRegistryBuilder()
                 .applySettings(configuration.getProperties())
