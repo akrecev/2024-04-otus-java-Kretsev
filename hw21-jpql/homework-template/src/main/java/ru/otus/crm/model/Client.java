@@ -51,6 +51,7 @@ public class Client implements Cloneable {
         }
     }
 
+    //TODO добавить клонирование адреса и телефона
     @Override
     @SuppressWarnings({"java:S2975", "java:S1182"})
     public Client clone() {
