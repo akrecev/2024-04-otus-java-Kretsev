@@ -30,6 +30,12 @@ public class Address {
     }
 
     public Address(Long id, String street) {
-        throw new UnsupportedOperationException();
+        this.id = id;
+        this.street = street;
+    }
+
+    @Override
+    public String toString() {
+        return "Address{" + "id=" + id + ", street='" + street + '}';
     }
 }

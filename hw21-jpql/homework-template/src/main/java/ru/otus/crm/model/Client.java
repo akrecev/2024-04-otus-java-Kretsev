@@ -39,17 +39,26 @@ public class Client implements Cloneable {
     }
 
     public <E> Client(Long id, String name, Address address, List<Phone> phones) {
-        throw new UnsupportedOperationException();
+        this.id = id;
+        this.name = name;
+        this.address = address;
+        this.phones = phones;
+        if (address != null) {
+            address.setAddressOwner(this);
+        }
+        if (phones != null) {
+            phones.forEach(phone -> phone.setPhoneOwner(this));
+        }
     }
 
     @Override
     @SuppressWarnings({"java:S2975", "java:S1182"})
     public Client clone() {
-        return new Client(this.id, this.name);
+        return new Client(this.id, this.name, this.address, this.phones);
     }
 
     @Override
     public String toString() {
-        return "Client{" + "id=" + id + ", name='" + name + '\'' + '}';
+        return "Client{" + "id=" + id + ", name='" + name + '\'' + ", address=" + address + ", phones=" + phones + '}';
     }
 }

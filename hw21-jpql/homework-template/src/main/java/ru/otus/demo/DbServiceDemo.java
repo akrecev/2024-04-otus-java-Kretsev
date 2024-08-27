@@ -1,5 +1,6 @@
 package ru.otus.demo;
 
+import java.util.List;
 import org.hibernate.cfg.Configuration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,7 +13,7 @@ import ru.otus.crm.model.Client;
 import ru.otus.crm.model.Phone;
 import ru.otus.crm.service.DbServiceClientImpl;
 
-@SuppressWarnings({"java:S125"})
+@SuppressWarnings({"java:S125", "java:S1481", "java:S1854"})
 public class DbServiceDemo {
 
     private static final Logger log = LoggerFactory.getLogger(DbServiceDemo.class);
@@ -46,7 +47,11 @@ public class DbServiceDemo {
         var clientTemplate = new DataTemplateHibernate<>(Client.class);
         ///
         var dbServiceClient = new DbServiceClientImpl(transactionManager, clientTemplate);
-        dbServiceClient.saveClient(new Client("dbServiceFirst"));
+        var clientFirst = new Client(
+                null, "Vasya", new Address(null, "VasyasStreet"), List.of(new Phone(null, "1"), new Phone(null, "2")));
+        var clientFirstSaved = dbServiceClient.saveClient(clientFirst);
+        var clientFirstSavedToString = clientFirstSaved.toString();
+        var clientFirstCloned = clientFirstSaved.clone();
 
         var clientSecond = dbServiceClient.saveClient(new Client("dbServiceSecond"));
         var clientSecondSelected = dbServiceClient

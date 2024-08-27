@@ -30,6 +30,12 @@ public class Phone {
     }
 
     public Phone(Long id, String number) {
-        throw new UnsupportedOperationException();
+        this.id = id;
+        this.number = number;
+    }
+
+    @Override
+    public String toString() {
+        return "Phone{id=" + id + ", number='" + number + '}';
     }
 }
