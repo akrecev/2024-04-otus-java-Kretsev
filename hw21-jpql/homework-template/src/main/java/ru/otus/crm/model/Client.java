@@ -1,6 +1,7 @@
 package ru.otus.crm.model;
 
 import jakarta.persistence.*;
+import java.util.ArrayList;
 import java.util.List;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -51,11 +52,20 @@ public class Client implements Cloneable {
         }
     }
 
-    //TODO добавить клонирование адреса и телефона
     @Override
     @SuppressWarnings({"java:S2975", "java:S1182"})
     public Client clone() {
-        return new Client(this.id, this.name, this.address, this.phones);
+        return new Client(
+                this.id,
+                this.name,
+                this.address == null
+                        ? null
+                        : new Address(this.address.getId(), this.address.getStreet(), this.address.getAddressOwner()),
+                this.phones == null
+                        ? new ArrayList<>()
+                        : this.phones.stream()
+                                .map(phone -> new Phone(phone.getId(), phone.getNumber(), phone.getPhoneOwner()))
+                                .toList());
     }
 
     @Override

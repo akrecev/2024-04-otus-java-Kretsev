@@ -1,13 +1,17 @@
 package ru.otus.crm.model;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.experimental.Accessors;
 
 @Getter
 @Setter
+@Accessors(chain = true)
 @NoArgsConstructor
+@AllArgsConstructor
 @Entity
 @Table(name = "address")
 public class Address {
