@@ -49,17 +49,17 @@ public class DbServiceDemo {
         var dbServiceClient = new DbServiceClientImpl(transactionManager, clientTemplate);
         var clientFirst = new Client(
                 null, "Vasya", new Address(null, "VasyasStreet"), List.of(new Phone(null, "1"), new Phone(null, "2")));
-        var clientFirstSaved = dbServiceClient.saveClient(clientFirst);
-        var clientFirstSavedToString = clientFirstSaved.toString();
-        var clientFirstCloned = clientFirstSaved.clone();
+        dbServiceClient.saveClient(clientFirst);
 
-        var clientSecond = dbServiceClient.saveClient(new Client("dbServiceSecond"));
+        var clientSecond = new Client(
+                null, "Petya", new Address(null, "PetyasStreet"), List.of(new Phone(null, "3"), new Phone(null, "4")));
+        var clientSecondSaved = dbServiceClient.saveClient(clientSecond);
         var clientSecondSelected = dbServiceClient
-                .getClient(clientSecond.getId())
-                .orElseThrow(() -> new RuntimeException("Client not found, id:" + clientSecond.getId()));
+                .getClient(clientSecondSaved.getId())
+                .orElseThrow(() -> new RuntimeException("Client not found, id:" + clientSecondSaved.getId()));
         log.info("clientSecondSelected:{}", clientSecondSelected);
         ///
-        dbServiceClient.saveClient(new Client(clientSecondSelected.getId(), "dbServiceSecondUpdated"));
+        dbServiceClient.saveClient(new Client(clientSecondSelected.getId(), "PetyaUpdated"));
         var clientUpdated = dbServiceClient
                 .getClient(clientSecondSelected.getId())
                 .orElseThrow(() -> new RuntimeException("Client not found, id:" + clientSecondSelected.getId()));
