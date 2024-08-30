@@ -66,6 +66,9 @@ public class DbServiceDemo {
         log.info("clientUpdated:{}", clientUpdated);
 
         log.info("All clients");
-        dbServiceClient.findAll().forEach(client -> log.info("client:{}", client));
+        dbServiceClient
+                .findAll()
+                .forEach(client -> log.info(
+                        "client: {}, address: {}, phones: {}", client, client.getAddress(), client.getPhones()));
     }
 }

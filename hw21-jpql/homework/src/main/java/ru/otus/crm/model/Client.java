@@ -27,7 +27,7 @@ public class Client implements Cloneable {
     @OneToOne(cascade = CascadeType.ALL, mappedBy = "addressOwner")
     private Address address;
 
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "phoneOwner")
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "phoneOwner", fetch = FetchType.EAGER)
     private List<Phone> phones;
 
     public Client(Long id, String name) {
