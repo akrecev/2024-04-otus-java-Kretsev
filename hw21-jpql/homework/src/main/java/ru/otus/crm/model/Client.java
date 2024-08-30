@@ -64,7 +64,7 @@ public class Client implements Cloneable {
 
     @Override
     public String toString() {
-        return "Client{" + "id=" + id + ", name='" + name + '\'' + ", address=" + address + ", phones=" + phones + '}';
+        return "Client{" + "id=" + id + ", name='" + name + '\'' + '}';
     }
 
     @Override
