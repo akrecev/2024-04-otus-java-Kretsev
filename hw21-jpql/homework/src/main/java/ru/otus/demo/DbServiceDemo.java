@@ -13,7 +13,6 @@ import ru.otus.crm.model.Client;
 import ru.otus.crm.model.Phone;
 import ru.otus.crm.service.DbServiceClientImpl;
 
-@SuppressWarnings({"java:S125", "java:S1481", "java:S1854"})
 public class DbServiceDemo {
 
     private static final Logger log = LoggerFactory.getLogger(DbServiceDemo.class);
@@ -21,15 +20,6 @@ public class DbServiceDemo {
     public static final String HIBERNATE_CFG_FILE = "hibernate.cfg.xml";
 
     public static void main(String[] args) {
-
-        // !!! временно - для вывода логов создания таблиц Hibernate
-        // -------------------------------------
-        //        try (var sessionFactory = HibernateUtils.buildSessionFactory(Client.class, Address.class,
-        // Phone.class)) {
-        //            log.info("Statistics:{}", sessionFactory.getStatistics());
-        //            log.info("Hibernate version: {}", org.hibernate.Version.getVersionString());
-        //        }
-        // -------------------------------------
 
         var configuration = new Configuration().configure(HIBERNATE_CFG_FILE);
 
