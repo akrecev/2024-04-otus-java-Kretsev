@@ -30,11 +30,6 @@ public class Client implements Cloneable {
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "phoneOwner")
     private List<Phone> phones;
 
-    public Client(String name) {
-        this.id = null;
-        this.name = name;
-    }
-
     public Client(Long id, String name) {
         this.id = id;
         this.name = name;
@@ -59,14 +54,12 @@ public class Client implements Cloneable {
         return new Client(
                 this.id,
                 this.name,
-                this.address == null
-                        ? null
-                        : new Address(this.address.getId(), this.address.getStreet(), this.address.getAddressOwner()),
-                this.phones == null
-                        ? new ArrayList<>()
-                        : this.phones.stream()
-                                .map(phone -> new Phone(phone.getId(), phone.getNumber(), phone.getPhoneOwner()))
-                                .toList());
+                this.address == null ? null : this.address.clone(),
+                this.phones == null ? new ArrayList<>() : clonePhones());
+    }
+
+    private List<Phone> clonePhones() {
+        return new ArrayList<>(this.phones.stream().map(Phone::clone).toList());
     }
 
     @Override

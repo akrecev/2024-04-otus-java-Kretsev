@@ -28,13 +28,14 @@ public class Phone {
     @JoinColumn(name = "phone_owner_id", foreignKey = @ForeignKey(name = "fk_phone_client"))
     private Client phoneOwner;
 
-    public Phone(String number) {
-        this.number = number;
-    }
-
     public Phone(Long id, String number) {
         this.id = id;
         this.number = number;
+    }
+
+    @Override
+    public Phone clone() {
+        return new Phone(this.id, this.number, this.phoneOwner);
     }
 
     @Override
