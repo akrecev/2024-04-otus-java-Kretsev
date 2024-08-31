@@ -13,6 +13,7 @@ import lombok.Setter;
 @AllArgsConstructor
 @Entity
 @Table(name = "phone")
+@SuppressWarnings({"java:S1182", "java:S2975"})
 public class Phone {
 
     @Id
