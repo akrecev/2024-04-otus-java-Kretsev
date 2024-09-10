@@ -1,5 +1,6 @@
 package ru.otus.dbapp.demo;
 
+import java.util.List;
 import org.hibernate.cfg.Configuration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -11,8 +12,6 @@ import ru.otus.dbapp.crm.model.Address;
 import ru.otus.dbapp.crm.model.Client;
 import ru.otus.dbapp.crm.model.Phone;
 import ru.otus.dbapp.crm.service.DbServiceClientImpl;
-
-import java.util.List;
 
 public class DbServiceDemo {
 
