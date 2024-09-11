@@ -1,5 +1,6 @@
 package ru.otus.base;
 
+import static ru.otus.dbapp.demo.DbServiceDemo.HIBERNATE_CFG_FILE;
 
 import org.hibernate.SessionFactory;
 import org.hibernate.cfg.Configuration;
@@ -17,8 +18,6 @@ import ru.otus.dbapp.crm.model.Client;
 import ru.otus.dbapp.crm.model.Phone;
 import ru.otus.dbapp.crm.service.DBServiceClient;
 import ru.otus.dbapp.crm.service.DbServiceClientImpl;
-
-import static ru.otus.dbapp.demo.DbServiceDemo.HIBERNATE_CFG_FILE;
 
 public abstract class AbstractHibernateTest {
     protected SessionFactory sessionFactory;
