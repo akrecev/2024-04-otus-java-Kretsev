@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.WeakHashMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import ru.otus.exception.NotifyException;
 
 public class MyCache<K, V> implements HwCache<K, V> {
     // Надо реализовать эти методы
@@ -22,7 +23,7 @@ public class MyCache<K, V> implements HwCache<K, V> {
     @Override
     public void put(K key, V value) {
         V oldValue = cache.put(key, value);
-        listeners.forEach(listener -> listener.notify(key, value, "updated"));
+        notifyListeners(key, value, "updated");
         if (oldValue == null) {
             logger.info("Cache size after addition: {}", cache.size());
         } else {
@@ -33,14 +34,14 @@ public class MyCache<K, V> implements HwCache<K, V> {
     @Override
     public void remove(K key) {
         V removed = cache.remove(key);
-        listeners.forEach(listener -> listener.notify(key, removed, "removed"));
+        notifyListeners(key, removed, "removed");
         logger.info("Cache size after removing: {}", cache.size());
     }
 
     @Override
     public V get(K key) {
         V gotten = cache.get(key);
-        listeners.forEach(listener -> listener.notify(key, gotten, "get"));
+        notifyListeners(key, gotten, "get");
         logger.info("Getting from cache: {}", gotten.toString());
 
         return gotten;
@@ -56,5 +57,13 @@ public class MyCache<K, V> implements HwCache<K, V> {
     public void removeListener(HwListener<K, V> listener) {
         listeners.remove(listener);
         logger.info("Listener removed: {}", listener.getClass().getName());
+    }
+
+    private void notifyListeners(K key, V value, String action) {
+        try {
+            listeners.forEach(listener -> listener.notify(key, value, action));
+        } catch (Exception e) {
+            throw new NotifyException(e.getMessage(), e);
+        }
     }
 }
