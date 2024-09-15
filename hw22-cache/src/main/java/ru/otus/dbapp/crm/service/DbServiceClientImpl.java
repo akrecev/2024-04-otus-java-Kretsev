@@ -16,7 +16,7 @@ public class DbServiceClientImpl implements DBServiceClient {
 
     private final DataTemplate<Client> clientDataTemplate;
     private final TransactionManager transactionManager;
-    private HwCache<Long, Client> cache;
+    private HwCache<String, Client> cache;
 
     public DbServiceClientImpl(TransactionManager transactionManager, DataTemplate<Client> clientDataTemplate) {
         this.transactionManager = transactionManager;
@@ -60,9 +60,9 @@ public class DbServiceClientImpl implements DBServiceClient {
     }
 
     private void cacheInit() {
-        HwListener<Long, Client> listener = new HwListener<Long, Client>() {
+        HwListener<String, Client> listener = new HwListener<>() {
             @Override
-            public void notify(Long key, Client value, String action) {
+            public void notify(String key, Client value, String action) {
                 log.info("key:{}, value:{}, action: {}", key, value, action);
             }
         };
@@ -72,11 +72,11 @@ public class DbServiceClientImpl implements DBServiceClient {
     }
 
     private void putInCache(Client client) {
-        cache.put(client.getId(), client.clone());
+        cache.put(client.getId().toString(), client.clone());
     }
 
     private Optional<Client> getFromCache(long id) {
-        return Optional.ofNullable(cache.get(id));
+        return Optional.ofNullable(cache.get(String.valueOf(id)));
     }
 
     private Optional<Client> getFromDB(long id) {
