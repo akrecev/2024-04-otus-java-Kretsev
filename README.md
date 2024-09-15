@@ -13,3 +13,4 @@
 ### 8.  Обработчик json-ов - модуль "hw16-io:homework"
 ### 9.  Самодельный ORM - модуль "hw18-jdbc:homework"
 ### 10. Использование Hibernate - модуль "hw21-jpql:homework"
+### 11. Свой cache engine - модуль "hw22-cache"
