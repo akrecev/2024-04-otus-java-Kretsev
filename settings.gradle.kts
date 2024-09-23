@@ -33,6 +33,7 @@ include("hw23-noSQL:mongo-db-reactive-demo")
 include("hw23-noSQL:neo4j-demo")
 include("hw23-noSQL:redis-demo")
 include("hw23-noSQL:cassandra-demo")
+include("hw24-webServer")
 
 pluginManagement {
     val jgitver: String by settings
