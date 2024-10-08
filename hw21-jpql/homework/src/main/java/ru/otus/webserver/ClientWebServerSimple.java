@@ -1,28 +1,25 @@
 package ru.otus.webserver;
 
-import com.google.gson.Gson;
 import org.eclipse.jetty.ee10.servlet.ServletContextHandler;
 import org.eclipse.jetty.ee10.servlet.ServletHolder;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.handler.ResourceHandler;
-import ru.otus.core.repository.DataTemplate;
-import ru.otus.crm.model.Client;
+import ru.otus.crm.service.DBServiceClient;
 import ru.otus.helper.FileSystemHelper;
 import ru.otus.service.TemplateProcessor;
+import ru.otus.servlet.ClientsServlet;
 
 public class ClientWebServerSimple implements ClientWebServer {
     private static final String START_PAGE_NAME = "index.html";
     private static final String COMMON_RESOURCES_DIR = "static";
 
-    private final DataTemplate<Client> clientTemplate;
-    private final Gson gson;
+    private final DBServiceClient serviceClient;
     protected final TemplateProcessor templateProcessor;
     private final Server server;
 
-    public ClientWebServerSimple(int port, DataTemplate<Client> clientTemplate, Gson gson, TemplateProcessor templateProcessor) {
-        this.clientTemplate = clientTemplate;
-        this.gson = gson;
+    public ClientWebServerSimple(int port, DBServiceClient serviceClient, TemplateProcessor templateProcessor) {
+        this.serviceClient = serviceClient;
         this.templateProcessor = templateProcessor;
         this.server = new Server(port);
     }
@@ -72,8 +69,8 @@ public class ClientWebServerSimple implements ClientWebServer {
 
     private ServletContextHandler createServletContextHandler() {
         ServletContextHandler servletContextHandler = new ServletContextHandler(ServletContextHandler.SESSIONS);
-        servletContextHandler.addServlet(new ServletHolder(
-                new ClientsServlet(templateProcessor, clientTemplate)), "/clients");
+        servletContextHandler.addServlet(
+                new ServletHolder(new ClientsServlet(templateProcessor, serviceClient)), "/clients");
         return servletContextHandler;
     }
 }

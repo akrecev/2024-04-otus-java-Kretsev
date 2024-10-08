@@ -12,14 +12,26 @@ import ru.otus.crm.model.Client;
 import ru.otus.crm.model.Phone;
 import ru.otus.crm.service.DBServiceClient;
 import ru.otus.crm.service.DbServiceClientImpl;
+import ru.otus.service.TemplateProcessor;
+import ru.otus.service.TemplateProcessorImpl;
+import ru.otus.webserver.ClientWebServer;
+import ru.otus.webserver.ClientWebServerSimple;
 
 public class WebApp {
     private static final Logger log = LoggerFactory.getLogger(WebApp.class);
     public static final String HIBERNATE_CFG_FILE = "hibernate.cfg.xml";
+    private static final int WEB_SERVER_PORT = 8080;
+    private static final String TEMPLATES_DIR = "/templates/";
 
+    public static void main(String[] args) throws Exception {
+        TemplateProcessor templateProcessor = new TemplateProcessorImpl(TEMPLATES_DIR);
+        ClientWebServer clientWebServer =
+                new ClientWebServerSimple(WEB_SERVER_PORT, setUpServiceClient(), templateProcessor);
 
-    public static void main(String[] args) {
-
+        clientWebServer.start();
+        log.info("ClientWebServer start");
+        clientWebServer.join();
+        log.info("ClientWebServer join");
     }
 
     public static DBServiceClient setUpServiceClient() {
@@ -35,6 +47,4 @@ public class WebApp {
 
         return new DbServiceClientImpl(transactionManager, clientTemplate);
     }
-
-
 }
