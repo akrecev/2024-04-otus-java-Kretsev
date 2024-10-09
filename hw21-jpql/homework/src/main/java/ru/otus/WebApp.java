@@ -1,5 +1,10 @@
 package ru.otus;
 
+import java.net.URI;
+import org.eclipse.jetty.security.HashLoginService;
+import org.eclipse.jetty.security.LoginService;
+import org.eclipse.jetty.util.resource.PathResourceFactory;
+import org.eclipse.jetty.util.resource.Resource;
 import org.hibernate.cfg.Configuration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,26 +17,34 @@ import ru.otus.crm.model.Client;
 import ru.otus.crm.model.Phone;
 import ru.otus.crm.service.DBServiceClient;
 import ru.otus.crm.service.DbServiceClientImpl;
+import ru.otus.helper.FileSystemHelper;
 import ru.otus.service.TemplateProcessor;
 import ru.otus.service.TemplateProcessorImpl;
 import ru.otus.webserver.ClientWebServer;
-import ru.otus.webserver.ClientWebServerSimple;
+import ru.otus.webserver.ClientWebServerBasicSecurity;
 
 public class WebApp {
     private static final Logger log = LoggerFactory.getLogger(WebApp.class);
     public static final String HIBERNATE_CFG_FILE = "hibernate.cfg.xml";
     private static final int WEB_SERVER_PORT = 8080;
     private static final String TEMPLATES_DIR = "/templates/";
+    private static final String HASH_LOGIN_SERVICE_CONFIG_NAME = "realm.properties";
+    private static final String REALM_NAME = "AnyRealm";
 
     public static void main(String[] args) throws Exception {
         TemplateProcessor templateProcessor = new TemplateProcessorImpl(TEMPLATES_DIR);
-        ClientWebServer clientWebServer =
-                new ClientWebServerSimple(WEB_SERVER_PORT, setUpServiceClient(), templateProcessor);
+        String hashLoginServiceConfigPath =
+                FileSystemHelper.localFileNameOrResourceNameToFullPath(HASH_LOGIN_SERVICE_CONFIG_NAME);
+        PathResourceFactory pathResourceFactory = new PathResourceFactory();
+        Resource configResource = pathResourceFactory.newResource(URI.create(hashLoginServiceConfigPath));
+        LoginService loginService = new HashLoginService(REALM_NAME, configResource);
+
+        ClientWebServer clientWebServer = new ClientWebServerBasicSecurity(
+                WEB_SERVER_PORT, loginService, setUpServiceClient(), templateProcessor);
 
         clientWebServer.start();
-        log.info("ClientWebServer start");
+        log.info("starting ClientWebServer");
         clientWebServer.join();
-        log.info("ClientWebServer join");
     }
 
     public static DBServiceClient setUpServiceClient() {
