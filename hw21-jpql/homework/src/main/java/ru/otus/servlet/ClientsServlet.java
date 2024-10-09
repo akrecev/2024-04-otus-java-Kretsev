@@ -5,7 +5,11 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import ru.otus.crm.model.Address;
+import ru.otus.crm.model.Client;
+import ru.otus.crm.model.Phone;
 import ru.otus.crm.service.DBServiceClient;
 import ru.otus.service.TemplateProcessor;
 
@@ -29,5 +33,16 @@ public class ClientsServlet extends HttpServlet {
 
         response.setContentType("text/html");
         response.getWriter().println(templateProcessor.getPage(CLIENTS_PAGE_TEMPLATE, paramsMap));
+    }
+
+    @Override
+    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        var clientFirst = new Client(
+                null,
+                request.getParameter("name"),
+                new Address(null, request.getParameter("address")),
+                List.of(new Phone(null, request.getParameter("phone"))));
+        serviceClient.saveClient(clientFirst);
+        response.sendRedirect("/clients");
     }
 }
