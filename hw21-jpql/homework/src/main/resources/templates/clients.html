@@ -1,0 +1,46 @@
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+    <title>Клиенты</title>
+</head>
+
+<body>
+<h4>Создание нового клиента</h4>
+<form action="clients" method="post">
+    <label for="client-name">Имя:</label>
+    <input type="text" name="name" id="client-name" required>
+    <label for="client-address">Адрес:</label>
+    <input type="text" name="address" id="client-address" required>
+    <label for="client-phone">Телефон:</label>
+    <input type="text" name="phone" id="client-phone">
+    <br /><br />
+    <input type="submit" value="Создать">
+</form>
+
+
+<h4>Список клиентов</h4>
+<a href="clients" target="_self">Обновить</a>
+<table style="width: 400px">
+    <thead>
+        <tr>
+            <td style="width: 50px">Id</td>
+            <td style="width: 150px">Имя</td>
+            <td style="width: 100px">Адрес</td>
+            <td style="width: 100px">Телефон</td>
+        </tr>
+    </thead>
+    <tbody>
+        <#list clients as client>
+            <tr>
+                <td>${client.id}</td>
+                <td>${client.name}</td>
+                <td>${client.address}</td>
+                <#list client.phones as phone>
+                <td>${phone}</td>
+                </#list>
+            </tr>
+        </#list>
+    </tbody>
+</table>
+</body>
+</html>

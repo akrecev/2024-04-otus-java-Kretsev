@@ -1,6 +1,6 @@
 package ru.otus.base;
 
-import static ru.otus.demo.DbServiceDemo.HIBERNATE_CFG_FILE;
+import static ru.otus.WebApp.HIBERNATE_CFG_FILE;
 
 import org.hibernate.SessionFactory;
 import org.hibernate.cfg.Configuration;
