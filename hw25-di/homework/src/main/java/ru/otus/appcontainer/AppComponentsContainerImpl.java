@@ -21,7 +21,6 @@ public class AppComponentsContainerImpl implements AppComponentsContainer {
 
     private void processConfig(Class<?> configClass) {
         checkConfigClass(configClass);
-        // You code here...
         Object appConfigInstance;
         try {
             appConfigInstance = configClass.getConstructor().newInstance();
@@ -68,21 +67,34 @@ public class AppComponentsContainerImpl implements AppComponentsContainer {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public <C> C getAppComponent(Class<C> componentClass) {
-        return (C) appComponents.stream()
+        List<Object> components = appComponents.stream()
                 .filter(component -> componentClass.isAssignableFrom(component.getClass()))
-                .toList()
-                .get(0);
+                .toList();
+
+        if (components.isEmpty()) {
+            throw new AppComponentsContainerException("Component is absent in a container");
+        } else if (components.size() > 1) {
+            throw new AppComponentsContainerException("Component is more than one in a container");
+        }
+
+        return (C) components.get(0);
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public <C> C getAppComponent(String componentName) {
-        return (C) appComponentsByName.get(componentName);
+        var component = (C) appComponentsByName.get(componentName);
+        if (component == null) {
+            throw new AppComponentsContainerException(String.format("Component %s is absent.", componentName));
+        }
+        return component;
     }
 
     private void checkDuplicateComponent(String componentName) {
         if (appComponentsByName.containsKey(componentName)) {
-            throw new AppComponentsContainerException("Component " + componentName + " is duplicate.");
+            throw new AppComponentsContainerException(String.format("Component %s is duplicate.", componentName));
         }
     }
 }

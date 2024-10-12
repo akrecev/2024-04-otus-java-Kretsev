@@ -21,7 +21,6 @@ import ru.otus.services.*;
 
 class AppTest {
 
-    @Disabled("Эту аннотацию надо убрать")
     @DisplayName("Из контекста тремя способами должен корректно доставаться компонент с проставленными полями")
     @ParameterizedTest(name = "Достаем по: {0}")
     @CsvSource(
@@ -81,7 +80,6 @@ class AppTest {
                 .isInstanceOf(Exception.class);
     }
 
-    @Disabled("Эту аннотацию надо убрать")
     @DisplayName(
             "При попытке достать из контекста отсутствующий или дублирующийся компонент, должно выкидываться исключение")
     @Test
