@@ -15,11 +15,21 @@ public class AppComponentsContainerImpl implements AppComponentsContainer {
     private final List<Object> appComponents = new ArrayList<>();
     private final Map<String, Object> appComponentsByName = new HashMap<>();
 
-    public AppComponentsContainerImpl(Class<?> initialConfigClass) {
-        processConfig(initialConfigClass);
+    public AppComponentsContainerImpl(Class<?>... initialConfigClasses) {
+        List<Class<?>> initialConfigClassList = Arrays.stream(initialConfigClasses)
+                .filter(configClass -> configClass.isAnnotationPresent(AppComponentsContainerConfig.class))
+                .sorted(Comparator.comparing(configClass -> configClass
+                        .getAnnotation(AppComponentsContainerConfig.class)
+                        .order()))
+                .toList();
+
+        for (Class<?> initialConfigClass : initialConfigClassList) {
+            processConfig(initialConfigClass);
+        }
     }
 
     private void processConfig(Class<?> configClass) {
+
         checkConfigClass(configClass);
         Object appConfigInstance;
         try {

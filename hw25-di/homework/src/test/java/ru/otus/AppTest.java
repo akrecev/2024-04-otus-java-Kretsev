@@ -8,7 +8,6 @@ import java.lang.reflect.Modifier;
 import java.util.Arrays;
 import java.util.Scanner;
 import java.util.stream.Collectors;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -16,7 +15,7 @@ import org.junit.jupiter.params.provider.CsvSource;
 import ru.otus.appcontainer.AppComponentsContainerImpl;
 import ru.otus.appcontainer.api.AppComponent;
 import ru.otus.appcontainer.api.AppComponentsContainerConfig;
-import ru.otus.config.AppConfig;
+import ru.otus.config.single.AppConfig;
 import ru.otus.services.*;
 
 class AppTest {
