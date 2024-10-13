@@ -35,7 +35,7 @@ include("hw23-noSQL:redis-demo")
 include("hw23-noSQL:cassandra-demo")
 include("hw24-webServer")
 include ("hw25-di:class-demo")
-include ("hw25-di:homework-template")
+include ("hw25-di:homework")
 
 pluginManagement {
     val jgitver: String by settings
