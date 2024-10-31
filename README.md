@@ -14,3 +14,5 @@
 ### 9.  Самодельный ORM - модуль "hw18-jdbc:homework"
 ### 10. Использование Hibernate - модуль "hw21-jpql:homework"
 ### 11. Свой cache engine - модуль "hw22-cache"
+### 12. Веб сервер - модуль "hw21-jpql:homework"
+### 13. Собственный IoC контейнер - модуль "hw25-di"
