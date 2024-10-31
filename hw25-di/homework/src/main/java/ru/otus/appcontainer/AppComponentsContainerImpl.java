@@ -2,7 +2,6 @@ package ru.otus.appcontainer;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.lang.reflect.Parameter;
 import java.util.*;
 import ru.otus.appcontainer.api.AppComponent;
 import ru.otus.appcontainer.api.AppComponentsContainer;
@@ -25,54 +24,6 @@ public class AppComponentsContainerImpl implements AppComponentsContainer {
 
         for (Class<?> initialConfigClass : initialConfigClassList) {
             processConfig(initialConfigClass);
-        }
-    }
-
-    private void processConfig(Class<?> configClass) {
-
-        checkConfigClass(configClass);
-        Object appConfigInstance;
-        try {
-            appConfigInstance = configClass.getConstructor().newInstance();
-        } catch (ReflectiveOperationException e) {
-            throw new AppComponentsContainerException("App config class creation error.", e);
-        }
-
-        List<Method> methodList = Arrays.stream(configClass.getMethods())
-                .filter(method -> method.isAnnotationPresent(AppComponent.class))
-                .sorted(Comparator.comparing(
-                        method -> method.getAnnotation(AppComponent.class).order()))
-                .toList();
-
-        Object component;
-        String componentName;
-
-        for (Method method : methodList) {
-            try {
-                List<Object> list = new ArrayList<>();
-                for (Parameter parameter : method.getParameters()) {
-                    Class<?> type = parameter.getType();
-                    Object appComponent = getAppComponent(type);
-                    list.add(appComponent);
-                }
-                Object[] objects = list.toArray();
-
-                component = method.invoke(appConfigInstance, objects);
-            } catch (IllegalAccessException | InvocationTargetException e) {
-                throw new RuntimeException(e);
-            }
-            componentName = method.getAnnotation(AppComponent.class).name();
-            checkDuplicateComponent(componentName);
-
-            appComponents.add(component);
-
-            appComponentsByName.put(componentName, component);
-        }
-    }
-
-    private void checkConfigClass(Class<?> configClass) {
-        if (!configClass.isAnnotationPresent(AppComponentsContainerConfig.class)) {
-            throw new IllegalArgumentException(String.format("Given class is not config %s", configClass.getName()));
         }
     }
 
@@ -100,6 +51,62 @@ public class AppComponentsContainerImpl implements AppComponentsContainer {
             throw new AppComponentsContainerException(String.format("Component %s is absent.", componentName));
         }
         return component;
+    }
+
+    private void processConfig(Class<?> configClass) {
+        checkConfigClass(configClass);
+        Object appConfigInstance = createConfigInstance(configClass);
+        List<Method> methodList = getSortedConfigMethods(configClass);
+
+        for (Method method : methodList) {
+            Object component = createComponent(appConfigInstance, method);
+            String componentName = method.getAnnotation(AppComponent.class).name();
+
+            addComponent(componentName, component);
+        }
+    }
+
+    private Object createConfigInstance(Class<?> configClass) {
+        try {
+            return configClass.getConstructor().newInstance();
+        } catch (ReflectiveOperationException e) {
+            throw new AppComponentsContainerException("App config class creation error.", e);
+        }
+    }
+
+    private List<Method> getSortedConfigMethods(Class<?> configClass) {
+        return Arrays.stream(configClass.getMethods())
+                .filter(method -> method.isAnnotationPresent(AppComponent.class))
+                .sorted(Comparator.comparing(
+                        method -> method.getAnnotation(AppComponent.class).order()))
+                .toList();
+    }
+
+    private Object createComponent(Object appConfigInstance, Method method) {
+        try {
+            Object[] parameters = getMethodParameters(method);
+            return method.invoke(appConfigInstance, parameters);
+        } catch (IllegalAccessException | InvocationTargetException e) {
+            throw new RuntimeException("Error creating component for method: " + method.getName(), e);
+        }
+    }
+
+    private Object[] getMethodParameters(Method method) {
+        return Arrays.stream(method.getParameters())
+                .map(parameter -> getAppComponent(parameter.getType()))
+                .toArray();
+    }
+
+    private void addComponent(String componentName, Object component) {
+        checkDuplicateComponent(componentName);
+        appComponents.add(component);
+        appComponentsByName.put(componentName, component);
+    }
+
+    private void checkConfigClass(Class<?> configClass) {
+        if (!configClass.isAnnotationPresent(AppComponentsContainerConfig.class)) {
+            throw new IllegalArgumentException(String.format("Given class is not config %s", configClass.getName()));
+        }
     }
 
     private void checkDuplicateComponent(String componentName) {
