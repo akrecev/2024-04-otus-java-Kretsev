@@ -37,6 +37,10 @@ include("hw24-webServer")
 include ("hw25-di:class-demo")
 include ("hw25-di:homework")
 include ("hw26-springBootMvc")
+include ("hw27-websocket:websocket")
+include ("hw27-websocket:messager")
+include ("hw27-websocket:messager-starter")
+include ("hw27-websocket:application")
 
 pluginManagement {
     val jgitver: String by settings
