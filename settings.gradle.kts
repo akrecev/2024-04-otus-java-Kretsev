@@ -41,7 +41,7 @@ include ("hw27-websocket:websocket")
 include ("hw27-websocket:messager")
 include ("hw27-websocket:messager-starter")
 include ("hw27-websocket:application")
-include ("hw28-springDataJdbc")
+include ("hw28-springDataJdbc:class-demo")
 
 pluginManagement {
     val jgitver: String by settings
