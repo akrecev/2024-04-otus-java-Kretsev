@@ -16,3 +16,4 @@
 ### 11. Свой cache engine - модуль "hw22-cache"
 ### 12. Веб сервер - модуль "hw21-jpql:homework"
 ### 13. Собственный IoC контейнер - модуль "hw25-di"
+### 14. Веб-приложение на Spring Boot - модуль ["hw28-springDataJdbc:homework"](hw28-springDataJdbc/homework/src/main/java/ru/otus)
