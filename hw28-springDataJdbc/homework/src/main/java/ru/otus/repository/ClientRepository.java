@@ -3,4 +3,8 @@ package ru.otus.repository;
 import org.springframework.data.repository.ListCrudRepository;
 import ru.otus.model.Client;
 
-public interface ClientRepository extends ListCrudRepository<Client, Long> {}
+import java.util.List;
+
+public interface ClientRepository extends ListCrudRepository<Client, Long> {
+    List<Client> findClientsByNameContainsIgnoreCase(String name);
+}
