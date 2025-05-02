@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Управление клиентами</title>
+    <style>
+        body {
+            padding: 20px;
+            font-family: Arial, sans-serif;
+        }
+        table {
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        input, button {
+            padding: 5px;
+            margin-right: 10px;
+        }
+        label {
+            display: inline-block;
+            width: 100px;
+        }
+        #result {
+            margin-top: 10px;
+            white-space: pre-wrap;
+        }
+    </style>
+    <script>
+        // Загрузка всех клиентов при открытии страницы
+        window.onload = function() {
+            fetch('/api/v1/client')
+                .then(response => response.json())
+                .then(clients => {
+                    const tbody = document.getElementById('clientsTableBody');
+                    tbody.innerHTML = '';
+                    clients.forEach(client => {
+                        const row = `<tr>
+                            <td>${client.id}</td>
+                            <td>${client.name}</td>
+                            <td>${client.address ? client.address.street : ''}</td>
+                            <td>${client.phones ? client.phones.map(p => p.number).join(', ') : ''}</td>
+                        </tr>`;
+                        tbody.innerHTML += row;
+                    });
+                    document.getElementById('result').innerHTML = `Всего клиентов: ${clients.length}`;
+                });
+        };
+
+        // Получение клиента по ID
+        function getClientById() {
+            const id = document.getElementById('clientId').value;
+            fetch(`/api/v1/client/${id}`)
+                .then(response => {
+                    if (!response.ok) throw new Error('Клиент не найден');
+                    return response.json();
+                })
+                .then(client => {
+                    document.getElementById('result').innerHTML = JSON.stringify(client, null, 2);
+                })
+                .catch(error => {
+                    document.getElementById('result').innerHTML = error.message;
+                });
+        }
+
+        // Поиск клиентов по имени
+        function searchClientsByName() {
+            const name = document.getElementById('clientNameSearch').value;
+            fetch(`/api/v1/client?name=${encodeURIComponent(name)}`)
+                .then(response => response.json())
+                .then(clients => {
+                    const tbody = document.getElementById('clientsTableBody');
+                    tbody.innerHTML = '';
+                    clients.forEach(client => {
+                        const row = `<tr>
+                            <td>${client.id}</td>
+                            <td>${client.name}</td>
+                            <td>${client.address ? client.address.street : ''}</td>
+                            <td>${client.phones ? client.phones.map(p => p.number).join(', ') : ''}</td>
+                        </tr>`;
+                        tbody.innerHTML += row;
+                    });
+                    document.getElementById('result').innerHTML = `Найдено клиентов: ${clients.length}`;
+                });
+        }
+
+        // Создание нового клиента
+        function saveClient() {
+            const name = document.getElementById('clientName').value;
+            const street = document.getElementById('clientAddress').value;
+            const phones = document.getElementById('clientPhones').value.split(',').map(phone => phone.trim()).filter(phone => phone).map(number => ({ number }));
+            const client = {
+                name: name,
+                address: street ? { street: street } : null,
+                phones: phones
+            };
+            fetch('/api/v1/client', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(client)
+            })
+                .then(response => response.json())
+                .then(client => {
+                    document.getElementById('result').innerHTML = `Клиент создан: ${JSON.stringify(client, null, 2)}`;
+                    searchClientsByName(); // Обновляем таблицу
+                })
+                .catch(error => {
+                    document.getElementById('result').innerHTML = `Ошибка: ${error.message}`;
+                });
+        }
+
+        // Удаление клиента
+        function deleteClient() {
+            const id = document.getElementById('clientId').value;
+            fetch(`/api/v1/client/${id}`, {
+                method: 'DELETE'
+            })
+                .then(response => {
+                    if (!response.ok) throw new Error('Не удалось удалить клиента');
+                    document.getElementById('result').innerHTML = `Клиент с ID ${id} удален`;
+                    searchClientsByName(); // Обновляем таблицу
+                })
+                .catch(error => {
+                    document.getElementById('result').innerHTML = error.message;
+                });
+        }
+    </script>
+</head>
+<body>
+<h2>Управление клиентами</h2>
+
+<!-- Поиск клиента по ID -->
+<div class="form-group">
+    <h3>Найти клиента по ID</h3>
+    <input type="number" id="clientId" placeholder="Введите ID клиента"/>
+    <button onclick="getClientById()">Найти</button>
+</div>
+
+<!-- Поиск клиентов по имени -->
+<div class="form-group">
+    <h3>Список клиентов</h3>
+    <input type="text" id="clientNameSearch" placeholder="Введите имя для поиска"/>
+    <button onclick="searchClientsByName()">Поиск</button>
+    <table>
+        <thead>
+        <tr>
+            <th>ID</th>
+            <th>Имя</th>
+            <th>Адрес</th>
+            <th>Телефоны</th>
+        </tr>
+        </thead>
+        <tbody id="clientsTableBody"></tbody>
+    </table>
+</div>
+
+<!-- Создание нового клиента -->
+<div class="form-group">
+    <h3>Создать нового клиента</h3>
+    <div>
+        <label for="clientName">Имя:</label>
+        <input type="text" id="clientName" placeholder="Введите имя клиента"/>
+    </div>
+    <div>
+        <label for="clientAddress">Адрес:</label>
+        <input type="text" id="clientAddress" placeholder="Введите улицу"/>
+    </div>
+    <div>
+        <label for="clientPhones">Телефоны:</label>
+        <input type="text" id="clientPhones" placeholder="Введите телефоны через запятую"/>
+    </div>
+    <button onclick="saveClient()">Создать</button>
+</div>
+
+<!-- Удаление клиента -->
+<div class="form-group">
+    <h3>Удалить клиента</h3>
+    <input type="number" id="clientId" placeholder="Введите ID клиента"/>
+    <button onclick="deleteClient()">Удалить</button>
+</div>
+
+<!-- Результат операций -->
+<div id="result"></div>
+</body>
+</html>

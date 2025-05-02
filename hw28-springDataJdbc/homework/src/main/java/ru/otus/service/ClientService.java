@@ -8,7 +8,7 @@ public interface ClientService {
 
     Client getById(long id);
 
-    List<Client> getByName(String name);
+    List<Client> getByNameContains(String name);
 
     List<Client> getAll();
 

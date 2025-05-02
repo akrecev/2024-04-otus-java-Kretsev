@@ -2,22 +2,39 @@ package ru.otus.service.impl;
 
 import java.util.List;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.otus.exception.DataNotFoundException;
 import ru.otus.model.Client;
+import ru.otus.model.Phone;
 import ru.otus.repository.ClientRepository;
+import ru.otus.repository.PhoneRepository;
 import ru.otus.service.ClientService;
 
 @Service
 public class ClientServiceImpl implements ClientService {
     private final ClientRepository clientRepository;
+    private final PhoneRepository phoneRepository;
 
-    public ClientServiceImpl(ClientRepository clientRepository) {
+    public ClientServiceImpl(ClientRepository clientRepository, PhoneRepository phoneRepository) {
         this.clientRepository = clientRepository;
+        this.phoneRepository = phoneRepository;
     }
 
     @Override
+    @Transactional
     public Client save(Client client) {
-        return clientRepository.save(client);
+        Client savedClient = clientRepository.save(new Client(
+                null, client.name(), client.address(), null // phones = null
+                ));
+
+        if (!client.phones().isEmpty()) {
+            List<Phone> phones = client.phones().stream()
+                    .map(p -> new Phone(null, p.number(), savedClient.id()))
+                    .toList();
+            phoneRepository.saveAll(phones);
+        }
+
+        return clientRepository.findById(savedClient.id()).orElseThrow();
     }
 
     @Override
@@ -26,7 +43,7 @@ public class ClientServiceImpl implements ClientService {
     }
 
     @Override
-    public List<Client> getByName(String name) {
+    public List<Client> getByNameContains(String name) {
         return clientRepository.findClientsByNameContainsIgnoreCase(name);
     }
 
