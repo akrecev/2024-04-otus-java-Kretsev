@@ -23,9 +23,7 @@ public class ClientServiceImpl implements ClientService {
     @Override
     @Transactional
     public Client save(Client client) {
-        Client savedClient = clientRepository.save(new Client(
-                null, client.name(), client.address(), null // phones = null
-                ));
+        Client savedClient = clientRepository.save(new Client(null, client.name(), client.address(), null));
 
         if (!client.phones().isEmpty()) {
             List<Phone> phones = client.phones().stream()
@@ -53,6 +51,7 @@ public class ClientServiceImpl implements ClientService {
     }
 
     @Override
+    @Transactional
     public void delete(long id) {
         clientRepository.deleteById(id);
     }
