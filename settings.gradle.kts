@@ -42,6 +42,7 @@ include ("hw27-websocket:messager")
 include ("hw27-websocket:messager-starter")
 include ("hw27-websocket:application")
 include ("hw28-springDataJdbc:class-demo")
+include("hw28-springDataJdbc:homework")
 
 pluginManagement {
     val jgitver: String by settings
@@ -64,3 +65,4 @@ pluginManagement {
         id("com.diffplug.spotless") version spotless
     }
 }
+//findProject(":hw28-springDataJdbc:homework")?.name = "homework"
