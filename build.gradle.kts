@@ -1,4 +1,5 @@
 import io.spring.gradle.dependencymanagement.dsl.DependencyManagementExtension
+import name.remal.gradle_plugins.sonarlint.SonarLintExtension
 import org.springframework.boot.gradle.plugin.SpringBootPlugin.BOM_COORDINATES
 import org.gradle.plugins.ide.idea.model.IdeaLanguageLevel
 
@@ -53,6 +54,8 @@ allprojects {
     val bootstrap: String by project
     val springDocOpenapiUi: String by project
     val jsr305: String by project
+    val redisson: String by project
+
 
     apply(plugin = "io.spring.dependency-management")
     dependencyManagement {
@@ -92,6 +95,7 @@ allprojects {
             dependency("org.webjars:bootstrap:$bootstrap")
             dependency("org.springdoc:springdoc-openapi-starter-webmvc-ui:$springDocOpenapiUi")
             dependency("com.google.code.findbugs:jsr305:$jsr305")
+            dependency("org.redisson:redisson:$redisson")
         }
     }
 
@@ -127,13 +131,20 @@ subprojects {
         options.encoding = "UTF-8"
         options.compilerArgs.addAll(listOf("-Xlint:all,-serial,-processing"))
         options.compilerArgs.add("-parameters")
+        dependsOn("spotlessApply")
     }
 
     apply<name.remal.gradle_plugins.sonarlint.SonarLintPlugin>()
+    configure<SonarLintExtension> {
+        nodeJs {
+            detectNodeJs = false
+            logNodeJsNotFound = false
+        }
+    }
     apply<com.diffplug.gradle.spotless.SpotlessPlugin>()
     configure<com.diffplug.gradle.spotless.SpotlessExtension> {
         java {
-            palantirJavaFormat("2.38.0")
+            palantirJavaFormat("2.39.0")
         }
     }
 
