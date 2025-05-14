@@ -52,7 +52,6 @@ public class MonitorHomework {
                         isThread1Turn = !isThread1Turn;
                         lock.notifyAll();
                     }
-                    return;
                 } catch (InterruptedException ex) {
                     Thread.currentThread().interrupt();
                 }
