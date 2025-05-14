@@ -1,13 +1,12 @@
 package ru.otus.monitor;
 
-import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class MonitorHomework {
     private static final Logger log = LoggerFactory.getLogger(MonitorHomework.class);
     private static final int TOP = 10;
-    private static final int DELAY_ON_SECONDS = 1;
+    private static final int DELAY_ON_MILLISECONDS = 500;
     private static final String FIRST_THREAD_NAME = "Thread-1";
     private static final String SECOND_THREAD_NAME = "Thread-2";
     private static boolean isThread1Turn = true;
@@ -22,7 +21,7 @@ public class MonitorHomework {
 
     private static void sleep() {
         try {
-            Thread.sleep(TimeUnit.SECONDS.toMillis(DELAY_ON_SECONDS));
+            Thread.sleep(DELAY_ON_MILLISECONDS);
         } catch (InterruptedException e) {
             log.error(e.getMessage());
             Thread.currentThread().interrupt();
@@ -30,10 +29,12 @@ public class MonitorHomework {
     }
 
     private static int[] generateSequence() {
-        int[] array = new int[TOP * 2 - 1];
+        int[] array = new int[TOP * 2 - 2];
         for (int i = 0; i < TOP; i++) {
             array[i] = i + 1;
-            array[array.length - i - 1] = i + 1;
+            if (i > 0) {
+                array[array.length - i] = i + 1;
+            }
         }
 
         return array;
