@@ -29,6 +29,16 @@ public class MonitorHomework {
         }
     }
 
+    private static int[] generateSequence() {
+        int[] array = new int[TOP * 2 - 1];
+        for (int i = 0; i < TOP; i++) {
+            array[i] = i + 1;
+            array[array.length - i - 1] = i + 1;
+        }
+
+        return array;
+    }
+
     private void push(String name, boolean isThreadFirst) {
         synchronized (lock) {
             while (!Thread.currentThread().isInterrupted()) {
@@ -48,15 +58,5 @@ public class MonitorHomework {
                 }
             }
         }
-    }
-
-    private int[] generateSequence() {
-        int[] array = new int[MonitorHomework.TOP * 2 - 1];
-        for (int i = 0; i < MonitorHomework.TOP; i++) {
-            array[i] = i + 1;
-            array[array.length - i - 1] = i + 1;
-        }
-
-        return array;
     }
 }
