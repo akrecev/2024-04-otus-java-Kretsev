@@ -116,6 +116,9 @@ allprojects {
             force("commons-io:commons-io:2.15.1")
             force("com.google.errorprone:error_prone_annotations:2.26.1")
             force("com.google.j2objc:j2objc-annotations:3.0.0")
+            force("org.eclipse.jgit:org.eclipse.jgit:6.9.0.202403050737-r")
+            force("org.apache.commons:commons-compress:1.26.1")
+            force("org.jetbrains:annotations:19.0.0")
         }
     }
 }
