@@ -54,6 +54,10 @@ include ("hw32-concurrentCollections:ConcurrentCollections")
 include ("hw32-concurrentCollections:QueueHomework")
 include ("hw33-virtualThreads:base")
 include ("hw33-virtualThreads:springBoot")
+include ("hw34-multiprocess:processes-demo")
+include ("hw34-multiprocess:sockets-demo")
+include ("hw34-multiprocess:rmi-demo")
+include ("hw34-multiprocess:grpc-demo")
 
 pluginManagement {
     val jgitver: String by settings
