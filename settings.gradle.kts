@@ -50,6 +50,8 @@ include("hw28-springDataJdbc:homework")
 include ("hw29-threads")
 include ("hw30-JMM")
 include ("hw31-executors")
+include ("hw32-concurrentCollections:ConcurrentCollections")
+include ("hw32-concurrentCollections:QueueDemo")
 
 pluginManagement {
     val jgitver: String by settings

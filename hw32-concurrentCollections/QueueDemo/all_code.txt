@@ -1,0 +1,774 @@
+package ru.otus.api.model;
+
+import java.time.LocalDateTime;
+
+public class SensorData {
+    private final LocalDateTime measurementTime;
+    private final String room;
+    private final Double value;
+
+    public SensorData(LocalDateTime measurementTime, String room, Double value) {
+        this.measurementTime = measurementTime;
+        this.room = room;
+        this.value = value;
+    }
+
+    public LocalDateTime getMeasurementTime() {
+        return measurementTime;
+    }
+
+    public String getRoom() {
+        return room;
+    }
+
+    public Double getValue() {
+        return value;
+    }
+
+    @Override
+    public String toString() {
+        return "SensorData{" + "measurementTime="
+                + measurementTime + ", room='"
+                + room + '\'' + ", value="
+                + value + '}';
+    }
+}
+package ru.otus.api;
+
+public interface SensorDataProcessingFlow {
+    void startProcessing();
+
+    void stopProcessing();
+
+    void bindProcessor(String roomPattern, SensorDataProcessor processor);
+}
+package ru.otus.api;
+
+import ru.otus.api.model.SensorData;
+
+public interface SensorDataProcessor {
+    void process(SensorData data);
+
+    default void onProcessingEnd() {}
+}
+package ru.otus.api;
+
+import java.util.concurrent.TimeUnit;
+import ru.otus.api.model.SensorData;
+
+public interface SensorsDataChannel {
+    boolean push(SensorData sensorData);
+
+    boolean isEmpty();
+
+    SensorData take(long timeout, TimeUnit unit) throws InterruptedException;
+}
+package ru.otus.api;
+
+import ru.otus.api.model.SensorData;
+
+public interface SensorsDataServer {
+    void onReceive(SensorData sensorData);
+}
+package ru.otus.lib;
+
+import java.util.List;
+import ru.otus.api.model.SensorData;
+
+public interface SensorDataBufferedWriter {
+    void writeBufferedData(List<SensorData> bufferedData);
+}
+package ru.otus.lib;
+
+import java.util.List;
+import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import ru.otus.api.model.SensorData;
+
+public class SensorDataBufferedWriterFake implements SensorDataBufferedWriter {
+    private static final Logger log = LoggerFactory.getLogger(SensorDataBufferedWriterFake.class);
+
+    @Override
+    public void writeBufferedData(List<SensorData> bufferedData) {
+        var dataToWrite = bufferedData.stream().map(SensorData::toString).collect(Collectors.joining("\n"));
+        log.info("Как будто куда-то записываем пачку данных: \n{}", dataToWrite);
+    }
+}
+package ru.otus;
+
+import java.util.concurrent.TimeUnit;
+import ru.otus.lib.SensorDataBufferedWriterFake;
+import ru.otus.services.FakeSensorDataGenerator;
+import ru.otus.services.SensorDataProcessingFlowImpl;
+import ru.otus.services.SensorsDataQueueChannel;
+import ru.otus.services.SensorsDataServerImpl;
+import ru.otus.services.processors.SensorDataProcessorBuffered;
+import ru.otus.services.processors.SensorDataProcessorCommon;
+import ru.otus.services.processors.SensorDataProcessorErrors;
+import ru.otus.services.processors.SensorDataProcessorRoom;
+
+public class Main {
+    private static final String ALL_ROOMS_BINDING = "*";
+    private static final String ROOM_NAME_BINDING = "Комната: 4";
+    private static final int BUFFER_SIZE = 15;
+    private static final int SENSORS_COUNT = 4;
+
+    private static final int SENSORS_DATA_QUEUE_CAPACITY = 1000;
+
+    public static void main(String[] args) throws InterruptedException {
+
+        // канал для передачи данных
+        var sensorsDataChannel = new SensorsDataQueueChannel(SENSORS_DATA_QUEUE_CAPACITY);
+
+        // получатель данных
+        var sensorsDataServer = new SensorsDataServerImpl(sensorsDataChannel);
+
+        // генератор данных
+        var fakeSensorDataGenerator = new FakeSensorDataGenerator(sensorsDataServer, SENSORS_COUNT);
+
+        // "насос" данных
+        var sensorDataProcessingFlow = new SensorDataProcessingFlowImpl(sensorsDataChannel);
+
+        // подписка на данные
+        sensorDataProcessingFlow.bindProcessor(ALL_ROOMS_BINDING, new SensorDataProcessorCommon());
+        sensorDataProcessingFlow.bindProcessor(ALL_ROOMS_BINDING, new SensorDataProcessorErrors());
+        sensorDataProcessingFlow.bindProcessor(ROOM_NAME_BINDING, new SensorDataProcessorRoom(ROOM_NAME_BINDING));
+        sensorDataProcessingFlow.bindProcessor(
+                ALL_ROOMS_BINDING, new SensorDataProcessorBuffered(BUFFER_SIZE, new SensorDataBufferedWriterFake()));
+
+        fakeSensorDataGenerator.start();
+        sensorDataProcessingFlow.startProcessing();
+
+        TimeUnit.SECONDS.sleep(10);
+
+        fakeSensorDataGenerator.stop();
+        sensorDataProcessingFlow.stopProcessing();
+    }
+}
+package ru.otus.services;
+
+import java.time.LocalDateTime;
+import java.util.Random;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+import java.util.random.RandomGenerator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import ru.otus.api.SensorsDataServer;
+import ru.otus.api.model.SensorData;
+
+@SuppressWarnings("java:S2245")
+public class FakeSensorDataGenerator {
+    private static final Logger log = LoggerFactory.getLogger(FakeSensorDataGenerator.class);
+
+    private static final int POOL_SIZE = 3;
+
+    private final int sensorsCount;
+    private final RandomGenerator random;
+    private final ScheduledExecutorService dataGenerationThreadPool = Executors.newScheduledThreadPool(POOL_SIZE);
+    private final SensorsDataServer sensorServer;
+
+    public FakeSensorDataGenerator(SensorsDataServer sensorServer, int sensorsCount) {
+        this.sensorServer = sensorServer;
+        this.sensorsCount = sensorsCount;
+        this.random = new Random();
+    }
+
+    public FakeSensorDataGenerator(RandomGenerator randomGenerator, SensorsDataServer sensorServer, int sensorsCount) {
+        this.sensorServer = sensorServer;
+        this.sensorsCount = sensorsCount;
+        this.random = randomGenerator;
+    }
+
+    public void start() {
+        dataGenerationThreadPool.scheduleAtFixedRate(this::generateSensorDataAndSend, 1, 500, TimeUnit.MILLISECONDS);
+    }
+
+    public void stop() {
+        dataGenerationThreadPool.shutdown();
+    }
+
+    private void generateSensorDataAndSend() {
+        sensorServer.onReceive(generate());
+    }
+
+    private SensorData generate() {
+        var room = "Комната: " + random.nextInt(1, sensorsCount + 1);
+        var data = isErrorMustOccurs() ? Double.NaN : random.nextDouble();
+        var sensorData = new SensorData(LocalDateTime.now(), room, data);
+
+        log.info("{} Сформированы новые данные датчика: {}", LocalDateTime.now(), sensorData);
+        return sensorData;
+    }
+
+    private boolean isErrorMustOccurs() {
+        return random.nextInt(0, 20) == 13;
+    }
+}
+package ru.otus.services.processors;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import ru.otus.api.SensorDataProcessor;
+import ru.otus.api.model.SensorData;
+import ru.otus.lib.SensorDataBufferedWriter;
+
+// Этот класс нужно реализовать
+@SuppressWarnings({"java:S1068", "java:S125"})
+public class SensorDataProcessorBuffered implements SensorDataProcessor {
+    private static final Logger log = LoggerFactory.getLogger(SensorDataProcessorBuffered.class);
+
+    private final int bufferSize;
+    private final SensorDataBufferedWriter writer;
+
+    public SensorDataProcessorBuffered(int bufferSize, SensorDataBufferedWriter writer) {
+        this.bufferSize = bufferSize;
+        this.writer = writer;
+    }
+
+    @Override
+    public void process(SensorData data) {
+        /*
+            if (dataBuffer.size() >= bufferSize) {
+                flush();
+            }
+        */
+    }
+
+    public void flush() {
+        try {
+            // writer.writeBufferedData(bufferedData);
+        } catch (Exception e) {
+            log.error("Ошибка в процессе записи буфера", e);
+        }
+    }
+
+    @Override
+    public void onProcessingEnd() {
+        flush();
+    }
+}
+package ru.otus.services.processors;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import ru.otus.api.SensorDataProcessor;
+import ru.otus.api.model.SensorData;
+
+public class SensorDataProcessorCommon implements SensorDataProcessor {
+    private static final Logger log = LoggerFactory.getLogger(SensorDataProcessorCommon.class);
+
+    @Override
+    public void process(SensorData data) {
+        if (data.getValue() == null || data.getValue().isNaN()) {
+            return;
+        }
+        log.info("Обработка данных: {}", data);
+    }
+}
+package ru.otus.services.processors;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import ru.otus.api.SensorDataProcessor;
+import ru.otus.api.model.SensorData;
+
+public class SensorDataProcessorErrors implements SensorDataProcessor {
+    private static final Logger log = LoggerFactory.getLogger(SensorDataProcessorErrors.class);
+
+    @Override
+    public void process(SensorData data) {
+        if (data.getValue() == null || !data.getValue().isNaN()) {
+            return;
+        }
+        log.error("Обработка ошибочных данных: {}", data);
+    }
+}
+package ru.otus.services.processors;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import ru.otus.api.SensorDataProcessor;
+import ru.otus.api.model.SensorData;
+
+public class SensorDataProcessorRoom implements SensorDataProcessor {
+    private static final Logger log = LoggerFactory.getLogger(SensorDataProcessorRoom.class);
+
+    private final String roomName;
+
+    public SensorDataProcessorRoom(String roomName) {
+        this.roomName = roomName;
+    }
+
+    @Override
+    public void process(SensorData data) {
+        if (data.getValue() == null || data.getValue().isNaN()) {
+            return;
+        }
+        log.info("Обработка данных по заданной комнате ({}): {}", roomName, data);
+    }
+}
+package ru.otus.services;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import ru.otus.api.SensorDataProcessingFlow;
+import ru.otus.api.SensorDataProcessor;
+import ru.otus.api.SensorsDataChannel;
+import ru.otus.api.model.SensorData;
+
+public class SensorDataProcessingFlowImpl implements SensorDataProcessingFlow {
+    private static final Logger log = LoggerFactory.getLogger(SensorDataProcessingFlowImpl.class);
+    public static final int POLLING_TIMEOUT = 5;
+    public static final int DATA_PROCESS_THREAD_POOL_SIZE = 1;
+
+    private final Map<String, List<SensorDataProcessor>> bindings = new ConcurrentHashMap<>();
+    private final AtomicBoolean pollingInProgress = new AtomicBoolean(false);
+    private final ExecutorService pollingThreadPool = Executors.newFixedThreadPool(1);
+    private final ExecutorService dataProcessThreadPool = Executors.newFixedThreadPool(DATA_PROCESS_THREAD_POOL_SIZE);
+
+    private final SensorsDataChannel sensorsDataChannel;
+
+    public SensorDataProcessingFlowImpl(SensorsDataChannel sensorsDataChannel) {
+        this.sensorsDataChannel = sensorsDataChannel;
+    }
+
+    @Override
+    public void startProcessing() {
+        pollingInProgress.set(true);
+        pollingThreadPool.submit(this::pollQueue);
+    }
+
+    @Override
+    public void stopProcessing() {
+        pollingInProgress.set(false);
+    }
+
+    @Override
+    public void bindProcessor(String roomPattern, SensorDataProcessor processor) {
+        var roomPatternBindings = bindings.computeIfAbsent(roomPattern, k -> new ArrayList<>());
+        roomPatternBindings.add(processor);
+    }
+
+    private void pollQueue() {
+        while (pollingInProgress.get() || !sensorsDataChannel.isEmpty()) {
+            try {
+                var sensorData = sensorsDataChannel.take(POLLING_TIMEOUT, TimeUnit.SECONDS);
+
+                if (sensorData != null) {
+                    dataProcessThreadPool.submit(() -> processData(sensorData));
+                }
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                log.error("Ошибка в процессе обработки очереди данных", e);
+            }
+        }
+        doShutdown();
+    }
+
+    private void processData(SensorData data) {
+        try {
+            var actualProcessors = new ArrayList<>(bindings.getOrDefault("*", new ArrayList<>()));
+            actualProcessors.addAll(bindings.getOrDefault(data.getRoom(), new ArrayList<>()));
+            for (var processor : actualProcessors) {
+                processor.process(data);
+            }
+        } catch (Exception e) {
+            log.error("Ошибка в процессе обработки показаний датчика", e);
+        }
+    }
+
+    private void doShutdown() {
+        bindings.values().stream().flatMap(Collection::stream).forEach(this::fireProcessorShutdownEvent);
+        dataProcessThreadPool.shutdown();
+        pollingThreadPool.shutdown();
+    }
+
+    private void fireProcessorShutdownEvent(SensorDataProcessor processor) {
+        try {
+            processor.onProcessingEnd();
+        } catch (Exception e) {
+            log.error("Ошибка в процессе завершающих действий процессора", e);
+        }
+    }
+}
+package ru.otus.services;
+
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.TimeUnit;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import ru.otus.api.SensorsDataChannel;
+import ru.otus.api.model.SensorData;
+
+public class SensorsDataQueueChannel implements SensorsDataChannel {
+    private static final Logger log = LoggerFactory.getLogger(SensorsDataQueueChannel.class);
+
+    private final BlockingQueue<SensorData> sensorsDataQueue;
+
+    public SensorsDataQueueChannel(int sensorsDataQueueCapacity) {
+        sensorsDataQueue = new ArrayBlockingQueue<>(sensorsDataQueueCapacity);
+    }
+
+    @Override
+    public boolean push(SensorData sensorData) {
+        var pushResult = sensorsDataQueue.offer(sensorData);
+        if (!pushResult) {
+            log.warn("Очередь показаний переполнена");
+        }
+        return pushResult;
+    }
+
+    @Override
+    public boolean isEmpty() {
+        return sensorsDataQueue.isEmpty();
+    }
+
+    @Override
+    public SensorData take(long timeout, TimeUnit unit) throws InterruptedException {
+        return sensorsDataQueue.poll(timeout, unit);
+    }
+}
+package ru.otus.services;
+
+import ru.otus.api.SensorsDataChannel;
+import ru.otus.api.SensorsDataServer;
+import ru.otus.api.model.SensorData;
+
+public class SensorsDataServerImpl implements SensorsDataServer {
+
+    private final SensorsDataChannel sensorsDataChannel;
+
+    public SensorsDataServerImpl(SensorsDataChannel sensorsDataChannel) {
+        this.sensorsDataChannel = sensorsDataChannel;
+    }
+
+    @Override
+    public void onReceive(SensorData sensorData) {
+        sensorsDataChannel.push(sensorData);
+    }
+}
+package ru.otus;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.random.RandomGenerator;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.RepeatedTest;
+import org.mockito.ArgumentCaptor;
+import ru.otus.api.model.SensorData;
+import ru.otus.services.FakeSensorDataGenerator;
+import ru.otus.services.SensorDataProcessingFlowImpl;
+import ru.otus.services.SensorsDataQueueChannel;
+import ru.otus.services.SensorsDataServerImpl;
+import ru.otus.services.processors.SensorDataProcessorCommon;
+import ru.otus.services.processors.SensorDataProcessorRoom;
+
+class AppTest {
+    private static final String ALL_ROOMS_BINDING = "*";
+    private static final String ROOM_NAME_BINDING = "Комната: 4";
+    private static final int SENSORS_COUNT = 4;
+    private static final int SENSORS_DATA_QUEUE_CAPACITY = 1000;
+    public static final int BINDED_ROOM_NUMBER = 4;
+
+    private RandomGenerator randomGenerator;
+    private FakeSensorDataGenerator fakeSensorDataGenerator;
+    private SensorDataProcessingFlowImpl sensorDataProcessingFlow;
+    private SensorDataProcessorCommon sensorDataProcessorCommon;
+    private SensorDataProcessorRoom sensorDataProcessorRoom;
+
+    @BeforeEach
+    void setUp() {
+
+        SensorsDataQueueChannel sensorsDataChannel = new SensorsDataQueueChannel(SENSORS_DATA_QUEUE_CAPACITY);
+        var sensorsDataServer = new SensorsDataServerImpl(sensorsDataChannel);
+        sensorDataProcessingFlow = new SensorDataProcessingFlowImpl(sensorsDataChannel);
+
+        randomGenerator = spy(RandomGenerator.class);
+        fakeSensorDataGenerator = new FakeSensorDataGenerator(randomGenerator, sensorsDataServer, SENSORS_COUNT);
+        sensorDataProcessorCommon = mock(SensorDataProcessorCommon.class);
+        sensorDataProcessorRoom = mock(SensorDataProcessorRoom.class);
+
+        sensorDataProcessingFlow.bindProcessor(ALL_ROOMS_BINDING, sensorDataProcessorCommon);
+        sensorDataProcessingFlow.bindProcessor(ROOM_NAME_BINDING, sensorDataProcessorRoom);
+    }
+
+    @RepeatedTest(10)
+    void shouldInvokeCorrectProcessorsAccordingItsBindings() throws InterruptedException {
+        AtomicInteger randomIntInvocationsCount = new AtomicInteger();
+        doAnswer(a -> (randomIntInvocationsCount.incrementAndGet() % 2 == 0) ? BINDED_ROOM_NUMBER : a.callRealMethod())
+                .when(randomGenerator)
+                .nextInt(1, SENSORS_COUNT + 1);
+
+        var allDataByRooms = new ConcurrentHashMap<String, List<SensorData>>();
+        doAnswer(a -> {
+                    SensorData sd = a.getArgument(0, SensorData.class);
+                    allDataByRooms
+                            .computeIfAbsent(sd.getRoom(), k -> new ArrayList<>())
+                            .add(sd);
+                    return null;
+                })
+                .when(sensorDataProcessorCommon)
+                .process(any());
+
+        CountDownLatch roomProcessorInvocationCountLatch = new CountDownLatch(10);
+        doAnswer(a -> {
+                    roomProcessorInvocationCountLatch.countDown();
+                    return null;
+                })
+                .when(sensorDataProcessorRoom)
+                .process(any());
+
+        fakeSensorDataGenerator.start();
+        sensorDataProcessingFlow.startProcessing();
+
+        var waitRes = roomProcessorInvocationCountLatch.await(30, TimeUnit.SECONDS);
+        assertThat(waitRes).isTrue();
+
+        sensorDataProcessingFlow.stopProcessing();
+        fakeSensorDataGenerator.stop();
+
+        var allData = allDataByRooms.entrySet().stream()
+                .flatMap(e -> e.getValue().stream())
+                .toList();
+        var allDataByBindedRoom = allDataByRooms.getOrDefault(ROOM_NAME_BINDING, new ArrayList<>());
+
+        assertThat(allData).isNotEmpty();
+
+        ArgumentCaptor<SensorData> argumentCaptorForProcessorCommon = ArgumentCaptor.forClass(SensorData.class);
+        verify(sensorDataProcessorCommon, times(allData.size())).process(argumentCaptorForProcessorCommon.capture());
+        assertThat(argumentCaptorForProcessorCommon.getAllValues()).containsExactlyInAnyOrderElementsOf(allData);
+
+        ArgumentCaptor<SensorData> argumentCaptorForProcessorRoom = ArgumentCaptor.forClass(SensorData.class);
+        verify(sensorDataProcessorRoom, times(allDataByBindedRoom.size()))
+                .process(argumentCaptorForProcessorRoom.capture());
+        assertThat(argumentCaptorForProcessorRoom.getAllValues())
+                .containsExactlyInAnyOrderElementsOf(allDataByBindedRoom);
+    }
+}
+package ru.otus.services.processors;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.*;
+
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.DoubleStream;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.RepeatedTest;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import ru.otus.api.model.SensorData;
+import ru.otus.lib.SensorDataBufferedWriter;
+
+@ExtendWith(MockitoExtension.class)
+class SensorDataProcessorBufferedTest {
+    private static final Logger log = LoggerFactory.getLogger(SensorDataProcessorBufferedTest.class);
+
+    public static final int BUFFER_SIZE = 2000;
+    public static final String ANY_ROOM = "AnyRoom";
+
+    @Mock
+    private SensorDataBufferedWriter writer;
+
+    @Captor
+    private ArgumentCaptor<List<SensorData>> captor;
+
+    private SensorDataProcessorBuffered processor;
+
+    @BeforeEach
+    void setUp() {
+        processor = spy(new SensorDataProcessorBuffered(BUFFER_SIZE, writer));
+    }
+
+    @Test
+    @Disabled("Удалить до начала тестирования")
+    void shouldExecFlushWhenBufferOverFlow() {
+        List<SensorData> sensorDataList = getSensorDataForTest(BUFFER_SIZE + BUFFER_SIZE / 2);
+
+        sensorDataList.forEach(sensorData -> processor.process(sensorData));
+        var outOfFirstBufferData = new SensorData(LocalDateTime.now(), ANY_ROOM, 10500d);
+        processor.process(outOfFirstBufferData);
+
+        verify(processor, times(1)).flush();
+        verify(writer).writeBufferedData(captor.capture());
+        var flushedData = captor.getValue();
+
+        assertThat(flushedData).hasSize(BUFFER_SIZE);
+    }
+
+    @Test
+    @Disabled("Удалить до начала тестирования")
+    void shouldFlushBufferDataSortedByTime() {
+        var sensorDataList = new ArrayList<>(getSensorDataForTest(BUFFER_SIZE - 1));
+        var originalSensorDataList = List.copyOf(sensorDataList);
+        Collections.shuffle(sensorDataList);
+
+        sensorDataList.forEach(sensorData -> processor.process(sensorData));
+        verify(processor, never()).flush();
+
+        processor.flush();
+
+        verify(writer).writeBufferedData(captor.capture());
+        var flushedData = captor.getValue();
+
+        assertThat(flushedData).containsExactlyElementsOf(originalSensorDataList);
+    }
+
+    @Test
+    @Disabled("Удалить до начала тестирования")
+    void shouldFlushTheRestOfTheBufferDataWhenOnProcessingEndFired() {
+        List<SensorData> sensorDataList = getSensorDataForTest(BUFFER_SIZE + BUFFER_SIZE / 2);
+        sensorDataList.forEach(sensorData -> processor.process(sensorData));
+
+        reset(processor, writer);
+
+        processor.onProcessingEnd();
+
+        verify(processor, times(1)).flush();
+        verify(writer).writeBufferedData(captor.capture());
+        var flushedData = captor.getValue();
+
+        assertThat(flushedData).hasSize(BUFFER_SIZE / 2);
+    }
+
+    @RepeatedTest(100)
+    @Disabled("Удалить до начала тестирования")
+    void shouldCorrectFlushDataFromManyThreads() {
+        List<SensorData> sensorDataList = getSensorDataForTest(BUFFER_SIZE - 1);
+        sensorDataList.forEach(sensorData -> processor.process(sensorData));
+
+        reset(processor, writer);
+
+        var numberOfThreads = 10;
+        var threads = new ArrayList<Thread>();
+        var latch = new CountDownLatch(1);
+        for (int i = 0; i < numberOfThreads; i++) {
+            var thread = new Thread(() -> {
+                awaitLatch(latch);
+                processor.flush();
+            });
+            thread.start();
+            threads.add(thread);
+        }
+        latch.countDown();
+        threads.forEach(this::joinThread);
+
+        verify(processor, times(numberOfThreads)).flush();
+        verify(writer, atLeastOnce()).writeBufferedData(captor.capture());
+        var flushedData = captor.getAllValues();
+
+        assertThat(flushedData).hasSize(1);
+    }
+
+    @RepeatedTest(1_000)
+    @Disabled("Удалить до начала тестирования")
+    void shouldCorrectFlushDataAndWriteThreads() throws InterruptedException {
+        List<SensorData> sensorDataList = getSensorDataForTest(BUFFER_SIZE - 1);
+
+        var latchReady = new CountDownLatch(2);
+        var processFlag = new AtomicBoolean(true);
+
+        var sensorDataBufferedWriter = new SensorDataBufferedWriter() {
+            private final List<SensorData> data = new ArrayList<>();
+
+            @Override
+            public void writeBufferedData(List<SensorData> bufferedData) {
+                data.addAll(bufferedData);
+            }
+
+            public List<SensorData> getData() {
+                return data;
+            }
+        };
+
+        var sensorDataProcessorBuffered = new SensorDataProcessorBuffered(BUFFER_SIZE, sensorDataBufferedWriter);
+        var writerThread = new Thread(() -> {
+            latchReady.countDown();
+            awaitLatch(latchReady);
+            sensorDataList.forEach(sensorDataProcessorBuffered::process);
+            processFlag.set(false);
+        });
+        var flusherThread = new Thread(() -> {
+            latchReady.countDown();
+            awaitLatch(latchReady);
+            do {
+                sensorDataProcessorBuffered.flush();
+            } while (processFlag.get());
+            sensorDataProcessorBuffered.flush();
+        });
+
+        writerThread.start();
+        flusherThread.start();
+
+        writerThread.join(100);
+        flusherThread.join(100);
+
+        assertThat(sensorDataBufferedWriter.getData()).hasSize(sensorDataList.size());
+        assertThat(sensorDataBufferedWriter.getData()).isEqualTo(sensorDataList);
+    }
+
+    private List<SensorData> getSensorDataForTest(int limit) {
+        var startTime = LocalDateTime.now();
+        return DoubleStream.iterate(0.0, d -> d + 1)
+                .limit(limit)
+                .boxed()
+                .map(d -> new SensorData(startTime.plusSeconds(d.longValue()), ANY_ROOM, d))
+                .toList();
+    }
+
+    private void awaitLatch(CountDownLatch latch) {
+        try {
+            var result = latch.await(10, TimeUnit.SECONDS);
+            if (!result) {
+                log.warn("timeout");
+            }
+        } catch (InterruptedException ignored) {
+            Thread.currentThread().interrupt();
+        }
+    }
+
+    private void joinThread(Thread thread) {
+        try {
+            thread.join(10);
+        } catch (InterruptedException ignored) {
+            Thread.currentThread().interrupt();
+        }
+    }
+}
