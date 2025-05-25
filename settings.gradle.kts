@@ -52,6 +52,8 @@ include ("hw30-JMM")
 include ("hw31-executors")
 include ("hw32-concurrentCollections:ConcurrentCollections")
 include ("hw32-concurrentCollections:QueueHomework")
+include ("hw33-virtualThreads:base")
+include ("hw33-virtualThreads:springBoot")
 
 pluginManagement {
     val jgitver: String by settings
