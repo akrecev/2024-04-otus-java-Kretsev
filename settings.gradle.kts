@@ -58,6 +58,8 @@ include ("hw34-multiprocess:processes-demo")
 include ("hw34-multiprocess:sockets-demo")
 include ("hw34-multiprocess:rmi-demo")
 include ("hw34-multiprocess:grpc-demo")
+include ("hw36-NIO")
+include ("hw37-netty")
 
 pluginManagement {
     val jgitver: String by settings
