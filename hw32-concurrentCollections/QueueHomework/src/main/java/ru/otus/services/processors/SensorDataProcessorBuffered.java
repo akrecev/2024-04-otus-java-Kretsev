@@ -3,6 +3,7 @@ package ru.otus.services.processors;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.PriorityBlockingQueue;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -19,7 +20,7 @@ public class SensorDataProcessorBuffered implements SensorDataProcessor {
 
     private final int bufferSize;
     private final SensorDataBufferedWriter writer;
-    private final PriorityBlockingQueue<SensorData> dataBuffer;
+    private final BlockingQueue<SensorData> dataBuffer;
     private final Lock lock = new ReentrantLock();
 
     public SensorDataProcessorBuffered(int bufferSize, SensorDataBufferedWriter writer) {
@@ -44,10 +45,8 @@ public class SensorDataProcessorBuffered implements SensorDataProcessor {
                 return;
             }
 
-            SensorData polled;
-            while ((polled = dataBuffer.poll()) != null) {
-                bufferedData.add(polled);
-            }
+            dataBuffer.drainTo(bufferedData);
+            bufferedData.sort(Comparator.comparing(SensorData::getMeasurementTime));
 
             if (!bufferedData.isEmpty()) {
                 writer.writeBufferedData(bufferedData);
