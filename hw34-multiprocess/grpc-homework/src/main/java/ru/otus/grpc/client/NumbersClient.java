@@ -50,7 +50,7 @@ public class NumbersClient {
 
         Runnable task = () -> {
             int counter = currentValue.incrementAndGet();
-            long valForPrint = getNextValue(clientStreamObserver);
+            long valForPrint = computeAndUpdateValue(clientStreamObserver);
             log.info("currentValue:{}", valForPrint);
 
             if (counter == LOOP_LIMIT) {
@@ -62,10 +62,11 @@ public class NumbersClient {
         executor.scheduleAtFixedRate(task, CLIENT_INITIAL_DELAY_ON_SECONDS, CLIENT_PERIOD_ON_SECONDS, TimeUnit.SECONDS);
     }
 
-    private long getNextValue(ClientStreamObserver clientStreamObserver) {
-        value = value + clientStreamObserver.getLastValueAndReset() + 1;
+    private synchronized long computeAndUpdateValue(ClientStreamObserver clientStreamObserver) {
+        long nextValue = this.value + clientStreamObserver.getLastValueAndReset() + 1;
+        this.value = nextValue;
 
-        return value;
+        return nextValue;
     }
 
     private NumberRequest makeNumberRequest() {
