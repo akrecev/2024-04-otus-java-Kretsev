@@ -57,6 +57,9 @@ allprojects {
     val redisson: String by project
     val grpc: String by project
 
+    val wiremock: String by project
+    val r2dbcPostgresql: String by project
+
 
     apply(plugin = "io.spring.dependency-management")
     dependencyManagement {

@@ -59,11 +59,16 @@ include ("hw34-multiprocess:sockets-demo")
 include ("hw34-multiprocess:rmi-demo")
 include ("hw34-multiprocess:grpc-demo")
 include ("hw34-multiprocess:grpc-homework")
-include ("hw36-NIO")
-include ("hw37-netty")
 include ("hw35-rabbitMQ:allServicesModels")
 include ("hw35-rabbitMQ:approvalService")
 include ("hw35-rabbitMQ:mainService")
+include ("hw36-NIO")
+include ("hw37-netty")
+include ("hw38-webflux:source")
+include ("hw38-webflux:processor")
+include ("hw38-webflux:client")
+include ("hw38-webflux-chat:client-service")
+include ("hw38-webflux-chat:datastore-service")
 
 pluginManagement {
     val jgitver: String by settings
