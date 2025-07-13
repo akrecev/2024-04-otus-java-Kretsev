@@ -18,3 +18,5 @@
 ### 13. Собственный IoC контейнер - модуль ["hw25-di"](hw25-di/homework/src/main/java/ru/otus)
 ### 14. Веб-приложение на Spring Boot - модуль ["hw28-springDataJdbc:homework"](hw28-springDataJdbc/homework/src/main/java/ru/otus)
 ### 15. Последовательность чисел - модуль ["hw31-executors"](hw31-executors/src/main/java/ru/otus/monitor/MonitorHomework.java)
+### 16. Queues - модуль ["hw32-concurrentCollections"](hw32-concurrentCollections/QueueHomework/src/main/java/ru/otus)
+### 17. gRPC клиент-серверное приложение или "Убить босса" - модуль ["hw34-multiprocess"](hw34-multiprocess/grpc-homework/src/main/java/ru/otus/grpc)
