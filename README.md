@@ -20,3 +20,4 @@
 ### 15. Последовательность чисел - модуль ["hw31-executors"](hw31-executors/src/main/java/ru/otus/monitor/MonitorHomework.java)
 ### 16. Queues - модуль ["hw32-concurrentCollections"](hw32-concurrentCollections/QueueHomework/src/main/java/ru/otus)
 ### 17. gRPC клиент-серверное приложение или "Убить босса" - модуль ["hw34-multiprocess"](hw34-multiprocess/grpc-homework/src/main/java/ru/otus/grpc)
+### 18. Комната 1408 - модуль ["hw38-webflux-chat"](hw38-webflux-chat)
